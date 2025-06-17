@@ -36,7 +36,7 @@ wss.on('connection', (ws, req) => {
         console.warn("Invalid JSON:", err);
         return;
       }
-      if(message && espMessageTypes[parsed.type]){
+      if(message && espMessageTypes[parsed.type] && espClient){
         console.log("Sending message to " + espClient + ": " + message.toString());
         espClient.send(message.toString());
       }
