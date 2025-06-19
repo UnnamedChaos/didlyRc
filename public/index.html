@@ -94,7 +94,7 @@
 </div>
 
 <script>
-    const ws = new WebSocket(`ws://${location.hostname}/ws`);
+    const ws = new WebSocket(`ws://${location.hostname}:3000/ws`);
     ws.onopen = () => {
         console.log("WebSocket connected");
         send("{\"type\":\"REGISTER_CONTROLLER\", \"value\":\"1\"}")
