@@ -4,8 +4,7 @@ import {controllers, espClients, parseMessage} from './messageHandler.js';
 export function setupWebSocket(server) {
     const wss = new WebSocketServer({ server });
 
-    function disconnect(ws, array) {
-        const index = array.findIndex(entry => entry === ws || entry.client === ws || entry.ws === ws);
+    function disconnect(index, array) {
         if (index > -1) {
             array.splice(index, 1);
             console.log("Disconnected ws from db.");
@@ -38,8 +37,8 @@ export function setupWebSocket(server) {
 
         ws.on('close', () => {
             console.log(`Disconnected: ${ip}`);
-            disconnect(ws, espClients);
-            disconnect(ws, controllers);
+            disconnect(espClients.findIndex(entry => entry.client === ws), espClients);
+            disconnect(controllers.findIndex(entry => entry.ip === ip), controllers);
         });
 
         ws.on('error', (err) => {

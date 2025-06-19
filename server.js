@@ -4,7 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { setupWebSocket } from './WebsocketHandler.js';
-import {espClients} from "./messageHandler.js";
+import {controllers, espClients} from "./messageHandler.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -24,7 +24,8 @@ app.get('/', (req, res) => {
 app.get('/api/espclients', (req, res) => {
   res.json(espClients.map(client => ({
     id: client.id,
-    name: client.name
+    name: client.name,
+    available: !controllers.find(v => v.client.id === client.id)
   })));
 });
 

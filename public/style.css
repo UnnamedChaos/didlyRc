@@ -1,0 +1,136 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: sans-serif;
+    background: #1c1c1c;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    height: var(--app-height);
+    overflow: hidden;
+    padding: 10px;
+}
+
+h1 {
+    margin: 10px 0;
+    text-align: center;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+    z-index: 10;
+}
+
+.menu {
+    display: flex; align-items: center; gap: 10px;
+}
+
+.dropdown {
+    position: relative;
+}
+
+.dropdown-btn {
+    padding: 10px 15px;
+    background: #444;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 6px;
+    min-width: 150px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    z-index: 1;
+}
+
+.dropdown-content button {
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: none;
+    text-align: left;
+    color: white;
+    cursor: pointer;
+}
+
+.dropdown-content button:hover {
+    background-color: #555;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.controller {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-grow: 1;
+    width: 100%;
+    max-width: 100%;
+}
+
+.fullscreen .top-bar {
+    display: none;
+}
+
+.stick-container {
+    position: relative;
+    height: 100%;
+    aspect-ratio: 1/1;
+    background: #333;
+    border-radius: 50%;
+    overflow: hidden;
+    touch-action: none;
+}
+
+.stick {
+    position: absolute;
+    width: 40%;
+    height: 40%;
+    background: #666;
+    border-radius: 50%;
+    top: 30%;
+    left: 30%;
+    transition: 0.1s;
+}
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 15px 25px;
+    background: #00aaff;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    color: white;
+    cursor: pointer;
+    flex: 1;
+}
+
+.btn.small {
+    padding: 10px 15px;
+    font-size: 16px;
+}
+
+.btn:active {
+    background: #0077aa;
+}
