@@ -14,10 +14,13 @@ const espMessageTypes  = {
   LIGHT_BLINKER: 'LIGHT_BLINKER',
   SIGN_ON: 'SIGN_ON',
   TILT: 'TILT',
-  WINCH: 'WINCH'
+  WINCH: 'WINCH',
+  REGISTER: 'REGISTER',
+  REGISTER_CONTROLLER: 'REGISTER_CONTROLLER'
 }
 
-let espClient = null;
+let espClients = [];
+let controllers = [];
 
 wss.on('connection', (ws, req) => {
   const ip = req.socket.remoteAddress;
@@ -25,20 +28,38 @@ wss.on('connection', (ws, req) => {
 
   ws.on('message', (message) => {
     console.log(`Received: ${message}`);
-    if (message.toString() === 'hello-esp') {
-      espClient = ws;
-      ws.send('ESP Registered');
-    } else {
-      let parsed;
-      try {
-        parsed = JSON.parse(message);
-      } catch (err) {
-        console.warn("Invalid JSON:", err);
-        return;
+    let parsed;
+    try {
+      parsed = JSON.parse(message);
+    } catch (err) {
+      console.warn("Invalid JSON:", err);
+      return;
+    }
+    console.log(`Received: ${parsed.type}`);
+    if (parsed.type === espMessageTypes.REGISTER.toString()) {
+      espClients = espClients.filter(value => value.id !== parsed.value);
+      console.log(`ESP with id ${parsed.value} registered.`);
+      espClients.push({client:ws, id:parsed.value});
+      ws.send(`ESP with id ${parsed.value} registered.`);
+    } else if(parsed.type === espMessageTypes.REGISTER_CONTROLLER.toString()){
+      console.log(`Register controller with ip: ${ip} to id ${parsed.value}`);
+      if(controllers.filter(value => value.client.id).length === 0){
+        console.log(`Connecting controller with ip ${ip} to client with id ${parsed.value}`);
+        let client = espClients.filter(value => value.id === parsed.value)[0];
+        if(client){
+          controllers.push({ip:ip, client:client})
+        } else{
+          console.log(`Could not find client with id ${parsed.value}`);
+        }
+      } else {
+        console.log(`Failed to register controller.`);
       }
-      if(message && espMessageTypes[parsed.type] && espClient){
-        console.log("Sending message to " + espClient + ": " + message.toString());
-        espClient.send(message.toString());
+    } else {
+      if(message && espMessageTypes[parsed.type]){
+        espClients.forEach(value => {
+          console.log("Sending message to " + value.id + ": " + message.toString());
+          value.client.send(message.toString());
+        })
       }
     }
   });
@@ -52,7 +73,9 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
     console.log(`Disconnected: ${ip}`);
-    if (ws === espClient) espClient = null;
+    if (espClients.includes(ws)) {
+      espClients = espClients.filter(value => value !== ws);
+    }
   });
 
   ws.on('error', (err) => {

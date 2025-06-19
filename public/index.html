@@ -95,7 +95,10 @@
 
 <script>
     const ws = new WebSocket(`ws://${location.hostname}/ws`);
-    ws.onopen = () => console.log("WebSocket connected");
+    ws.onopen = () => {
+        console.log("WebSocket connected");
+        send("{\"type\":\"REGISTER_CONTROLLER\", \"value\":\"1\"}")
+    };
     ws.onmessage = (msg) => console.log("Server:", msg.data);
 
     const tiltDownBtn = document.getElementById("tilt-down");
