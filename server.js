@@ -4,6 +4,7 @@ const WebSocket = require('ws');
 const path = require('path');
 
 const app = express();
+const port = 3000;
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
@@ -89,7 +90,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
-server.listen(80, () => {
+server.listen(port, () => {
   console.log('Server running on port 80');
 });
 
