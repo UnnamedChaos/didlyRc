@@ -1,3 +1,5 @@
+import espConfig from './espConfig.json' with { type: 'json' };
+
 const espMessageTypes = {
     DRIVE: "DRIVE",
     TURN: "TURN",
@@ -13,17 +15,24 @@ const serverMessageTypes = {
     REGISTER_CONTROLLER: "REGISTER_CONTROLLER",
 };
 
-let controllers = [];
 
-function registerESP(ws, espClients, parsed) {
-    espClients = espClients.filter((value) => value.id !== parsed.value);
-    console.log(`ESP with id ${parsed.value} registered.`);
-    espClients.push({ client: ws, id: parsed.value });
-    ws.send(`ESP with id ${parsed.value} registered.`);
-    return espClients;
+export let espClients = [];
+export let controllers = [];
+
+function registerESP(ws, parsed) {
+    const index = espClients.findIndex(v => v.id === parsed.value);
+    if (index > -1) espClients.splice(index, 1);
+    console.log(`ESP with id ${parsed.value} to be registered.`);
+    let esp = espConfig.filter((esp) => {return esp.id === parsed.value})[0];
+    if(esp){
+        espClients.push({ client: ws, id: parsed.value , name: esp.name});
+        ws.send(`ESP with id ${parsed.value} registered.`);
+        console.log(`Found ESP in config. ESP with id ${parsed.value} registered.`);
+        console.log(`Total registered esps: ` + espClients.length);
+    }
 }
 
-function registerController(req, ws, espClients, parsed) {
+function registerController(req, ws, parsed) {
     console.log(`Register controller with ip: ${req.socket.remoteAddress} to id ${parsed.value}`);
     if (controllers.filter((value) => value.client.id).length === 0) {
         const client = espClients.find((c) => c.id === parsed.value);
@@ -38,7 +47,7 @@ function registerController(req, ws, espClients, parsed) {
     }
 }
 
-function proxyMessage(espClients, message, parsed) {
+function proxyMessage(message, parsed) {
     if (message && espMessageTypes[parsed.type]) {
         espClients.forEach((value) => {
             console.log("Sending message to " + value.id + ": " + message.toString());
@@ -47,14 +56,12 @@ function proxyMessage(espClients, message, parsed) {
     }
 }
 
-export function parseMessage(req, ws, espClientsRef, parsed, message) {
+export function parseMessage(req, ws, parsed, message) {
     if (parsed.type === serverMessageTypes.REGISTER) {
-        const updated = registerESP(ws, espClientsRef, parsed);
-        espClientsRef.length = 0;
-        espClientsRef.push(...updated);
+        registerESP(ws, parsed);
     } else if (parsed.type === serverMessageTypes.REGISTER_CONTROLLER) {
-        registerController(req, ws, espClientsRef, parsed);
+        registerController(req, ws, parsed);
     } else {
-        proxyMessage(espClientsRef, message, parsed);
+        proxyMessage(message, parsed);
     }
 }
