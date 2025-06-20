@@ -1,5 +1,5 @@
 import { WebSocketServer } from 'ws';
-import {controllers, espClients, parseMessage} from './messageHandler.js';
+import {controllers, espClients, parseMessage, updateControllers} from './messageHandler.js';
 
 export function setupWebSocket(server) {
     const wss = new WebSocketServer({ server });
@@ -8,6 +8,7 @@ export function setupWebSocket(server) {
         if (index > -1) {
             array.splice(index, 1);
             console.log("Disconnected ws from db.");
+            updateControllers();
         }
     }
 
@@ -16,7 +17,6 @@ export function setupWebSocket(server) {
         console.log(`New connection from ${ip}`);
 
         ws.on('message', (message) => {
-            console.log(`Received: ${message}`);
             let parsed;
             try {
                 parsed = JSON.parse(message);
@@ -24,7 +24,6 @@ export function setupWebSocket(server) {
                 console.warn('Invalid JSON:', err);
                 return;
             }
-            console.log(`Received: ${parsed.type}`);
             parseMessage(req,  ws, parsed, message);
         });
 

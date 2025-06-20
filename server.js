@@ -25,7 +25,7 @@ app.get('/api/espclients', (req, res) => {
   res.json(espClients.map(client => ({
     id: client.id,
     name: client.name,
-    available: !controllers.find(v => v.client.id === client.id)
+    available: !controllers.find(v => v.client && v.client.id === client.id)
   })));
 });
 

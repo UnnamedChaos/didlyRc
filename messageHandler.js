@@ -31,7 +31,16 @@ function registerESP(ws, parsed) {
         ws.send(`ESP with id ${parsed.value} registered.`);
         console.log(`Found ESP in config. ESP with id ${parsed.value} registered.`);
         console.log(`Total registered esps: ` + espClients.length);
+        updateControllers();
     }
+}
+
+export function updateControllers() {
+    controllers.forEach(controller => {
+        controller.ws.send(JSON.stringify({
+            "type": serverMessageTypes.UPDATE_CLIENTS.toString()
+        }));
+    })
 }
 
 function registerClientToController(ws, client) {
@@ -39,11 +48,7 @@ function registerClientToController(ws, client) {
         "type": serverMessageTypes.REGISTRATION_SUCCESSFUL.toString(),
         "value": client.id.toString()
     }));
-    controllers.forEach(controller => {
-        controller.ws.send(JSON.stringify({
-            "type": serverMessageTypes.UPDATE_CLIENTS.toString()
-        }));
-    })
+    updateControllers();
 }
 
 function registerController(req, ws, parsed) {
@@ -71,14 +76,14 @@ function registerController(req, ws, parsed) {
 }
 
 function isEspClientConnected(client){
-    return controllers.find(value => value.client.id === client.id) !== undefined;
+    return controllers.find(value => value.client && value.client.id === client.id) !== undefined;
 }
 
 function proxyMessage(req, message, parsed) {
     if (message && espMessageTypes[parsed.type]) {
         const controller = controllers.find(value => value.ip === req.socket.remoteAddress);
-        if(controller){
-            console.log("Sending message to " + controller.id + ": " + message.toString());
+        if(controller && controller.client){
+            console.debug("Sending message to " + controller.id + ": " + message.toString());
             controller.client.client.send(message.toString());
         }
     }

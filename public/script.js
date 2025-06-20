@@ -1,6 +1,9 @@
 const ws = new WebSocket(`ws://${location.hostname}:3000/ws`);
 let clientId = -1;
-ws.onopen = () => console.log("WebSocket connected");
+ws.onopen = () => {
+    console.log("WebSocket connected");
+    send(JSON.stringify({ type: "REGISTER_CONTROLLER", value: 0 }));
+};
 ws.onmessage = (msg) => {
     console.log("Server:", msg.data)
     const data = JSON.parse(msg.data);
@@ -14,7 +17,6 @@ ws.onmessage = (msg) => {
         updateClients();
     }
 };
-send(JSON.stringify({ type: "REGISTER_CONTROLLER", value: 0 }));
 
 function send(msg) {
     if (ws.readyState === WebSocket.OPEN) {
