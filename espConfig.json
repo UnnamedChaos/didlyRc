@@ -1,13 +1,21 @@
 [{
   "id": "1",
-  "name": "Rot"
+  "name": "Rot",
+  "winchDeadzone": 0.3,
+  "trim": "-0.18"
 },{
   "id": "2",
-  "name": "Orange"
+  "name": "Orange",
+  "winchDeadzone": 0.3,
+  "trim": "-0.18"
 },{
   "id": "3",
-  "name": "Blau"
+  "name": "Blau",
+  "winchDeadzone": 0.3,
+  "trim": "-0.18"
 },{
   "id": "4",
-  "name": "Grün"
+  "name": "Grün",
+  "winchDeadzone": 0.3,
+  "trim": "-0.18"
 }]

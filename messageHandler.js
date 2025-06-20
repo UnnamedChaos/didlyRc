@@ -27,7 +27,7 @@ function registerESP(ws, parsed) {
     console.log(`ESP with id ${parsed.value} to be registered.`);
     let esp = espConfig.filter((esp) => {return esp.id === parsed.value})[0];
     if(esp){
-        espClients.push({ client: ws, id: parsed.value , name: esp.name});
+        espClients.push({ ws, id: parsed.value , name: esp.name, esp});
         ws.send(`ESP with id ${parsed.value} registered.`);
         console.log(`Found ESP in config. ESP with id ${parsed.value} registered.`);
         console.log(`Total registered esps: ` + espClients.length);
@@ -83,8 +83,19 @@ function proxyMessage(req, message, parsed) {
     if (message && espMessageTypes[parsed.type]) {
         const controller = controllers.find(value => value.ip === req.socket.remoteAddress);
         if(controller && controller.client){
-            console.debug("Sending message to " + controller.id + ": " + message.toString());
-            controller.client.client.send(message.toString());
+
+            if(parsed.type === espMessageTypes.TURN){
+                parsed.value =  parseFloat(parsed.value) + parseFloat(controller.client.esp.trim);
+            }
+            if(parsed.type === espMessageTypes.WINCH){
+                if(Math.abs(parsed.value) <= controller.client.esp.winchDeadzone){
+                    parsed.value =  0;
+                } else {
+                    parsed.value = Math.sign(parsed.value) * Math.abs(parsed.value).map(controller.client.esp.winchDeadzone,1,0,1);
+                }
+            }
+            console.debug("Sending message to " + controller.ip + ": " + JSON.stringify(parsed));
+            controller.client.ws.send(JSON.stringify(parsed));
         }
     }
 }
@@ -98,3 +109,7 @@ export function parseMessage(req, ws, parsed, message) {
         proxyMessage(req, message, parsed);
     }
 }
+Number.prototype.map = function (in_min, in_max, out_min, out_max) {
+    return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
