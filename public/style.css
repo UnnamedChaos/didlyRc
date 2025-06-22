@@ -85,6 +85,9 @@ h1 {
 .fullscreen .top-bar {
     display: none;
 }
+.fullscreen .bottom-bar {
+    display: none;
+}
 
 .stick-container {
     position: relative;
