@@ -13,6 +13,10 @@ const app = express();
 const port = 3000;
 const server = http.createServer(app);
 
+
+const isPi = process.platform === 'linux' && require('os').arch() === 'arm';
+let oled;
+
 setupWebSocket(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -32,3 +36,19 @@ app.get('/api/espclients', (req, res) => {
 server.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
+if (isPi) {
+  const i2c = require('i2c-bus');
+  const Oled = require('oled-i2c-bus');
+  const font = require('oled-font-5x7');
+
+  const i2cBus = i2c.openSync(1);
+  const opts = { width: 128, height: 64, address: 0x3C };
+
+  oled = new Oled(i2cBus, opts);
+  oled.clearDisplay();
+  oled.setCursor(1, 1);
+  oled.writeString(font, 1, 'Running on Pi!', 1, true);
+} else {
+  console.log('OLED code skipped (not running on Pi)');
+}

@@ -15,5 +15,9 @@
     "nodejs": "0.0.0",
     "npm": "^11.4.2",
     "ws": "^8.18.2"
+  },
+  "optionalDependencies": {
+    "i2c-bus": "^5.2.2",
+    "oled-i2c-bus": "^1.0.0"
   }
 }
