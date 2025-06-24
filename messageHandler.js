@@ -1,4 +1,5 @@
 import espConfig from './espConfig.json' with { type: 'json' };
+import {setScoreboard} from "./oledDisplay.js";
 
 const espMessageTypes = {
     DRIVE: "DRIVE",
@@ -137,13 +138,26 @@ function disconnectEsp(req, ws, parsed) {
 export function parseMessage(req, ws, parsed, message) {
     if (parsed.type === serverMessageTypes.REGISTER) {
         registerESP(ws, parsed);
+        insertDataToScoreboard()
     } else if (parsed.type === serverMessageTypes.REGISTER_CONTROLLER) {
         registerController(req, ws, parsed);
+        insertDataToScoreboard()
     } else if (parsed.type === serverMessageTypes.DISCONNECT_ESP) {
         disconnectEsp(req, ws, parsed);
+        insertDataToScoreboard()
     } else {
         proxyMessage(req, message, parsed);
     }
+}
+
+function insertDataToScoreboard(){
+    let data = [];
+    controllers.forEach(controller => {
+        if(controller.client){
+            data.push({name: controller.ip, esp: controller.client.esp.name})
+        }
+    })
+    setScoreboard(data);
 }
 Number.prototype.map = function (in_min, in_max, out_min, out_max) {
     return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;

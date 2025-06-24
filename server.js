@@ -6,6 +6,7 @@ import { dirname } from 'path';
 import { setupWebSocket } from './WebsocketHandler.js';
 import {controllers, espClients} from "./messageHandler.js";
 import os from 'os';
+import { startForkliftAnimation, setScoreboard } from './oledDisplay.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -51,8 +52,7 @@ if (isPi) {
   });
 
   oled.clearDisplay();
-  oled.setCursor(1, 1);
-  oled.writeString(font, 1, 'Running on Pi!', 1, true);
+  await startForkliftAnimation();
 } else {
   console.log('OLED code skipped (not running on Pi)');
 }
