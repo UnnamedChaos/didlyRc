@@ -57,6 +57,8 @@ export async function startForkliftAnimation() {
         await delay(20);
     }
 
+    await delay(3000);
+
     drawScoreboard();
 }
 
