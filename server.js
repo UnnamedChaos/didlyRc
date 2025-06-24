@@ -16,7 +16,8 @@ const port = 3000;
 const server = http.createServer(app);
 
 
-const isPi = process.platform === 'linux' && os.arch().startsWith('arm');
+//const isPi = process.platform === 'linux' && os.arch().startsWith('arm');
+const isPi = false;
 let oled;
 
 setupWebSocket(server);
