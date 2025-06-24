@@ -18,6 +18,7 @@
   },
   "optionalDependencies": {
     "i2c-bus": "^5.2.2",
-    "oled-i2c-bus": "^1.0.0"
+    "oled-i2c-bus": "^1.0.0",
+    "oled-font-5x7": "^1.0.3"
   }
 }
