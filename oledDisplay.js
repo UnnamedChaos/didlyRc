@@ -3,6 +3,14 @@ const isPi = os.platform() === 'linux' && os.arch().startsWith('arm');
 
 let oled, font;
 
+
+let names = [
+    { name: 'Anna', esp: 12, brightness: 1 },
+    { name: 'Luca', esp: 7, brightness: 1 },
+    { name: 'Mila', esp: 5, brightness: 1 },
+    { name: 'Noah', esp: 9, brightness: 1 },
+];
+
 if (isPi) {
     const i2c = (await import('i2c-bus')).default;
     const Oled = (await import('oled-i2c-bus')).default;
@@ -14,13 +22,6 @@ if (isPi) {
     oled.clearDisplay();
     drawScoreboard();
 }
-
-let names = [
-    { name: 'Anna', esp: 12, brightness: 1 },
-    { name: 'Luca', esp: 7, brightness: 1 },
-    { name: 'Mila', esp: 5, brightness: 1 },
-    { name: 'Noah', esp: 9, brightness: 1 },
-];
 
 export function setScoreboard(newNames) {
     names = newNames;
