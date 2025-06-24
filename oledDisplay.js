@@ -67,13 +67,14 @@ function drawScoreboard() {
     oled.drawLine(0, 0, 0, 63, 1);
     oled.drawLine(127, 0, 127, 63, 1);
     oled.drawLine(0, 63, 127, 63, 1);
-
-    names.forEach((entry, idx) => {
-        const y = 2 + idx * 15;
-        const label = `${entry.name}: ${entry.esp}`;
-        oled.setCursor(4, y);
-        oled.writeString(font, 1, label, entry.brightness || 1, false);
-    });
+    if(names){
+        names.forEach((entry, idx) => {
+            const y = 2 + idx * 15;
+            const label = `${entry.name}: ${entry.esp}`;
+            oled.setCursor(4, y);
+            oled.writeString(font, 1, label, entry.brightness || 1, false);
+        });
+    }
 }
 
 function delay(ms) {
