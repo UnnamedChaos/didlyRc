@@ -26,6 +26,10 @@ h1 {
     z-index: 10;
 }
 
+.top-bar #disconnect-btn {
+    display: none;
+}
+
 .menu {
     display: flex; align-items: center; gap: 10px;
 }
@@ -41,6 +45,7 @@ h1 {
     border: none;
     border-radius: 8px;
     cursor: pointer;
+    font-size: 16px;
 }
 
 .dropdown-content {
@@ -118,6 +123,10 @@ h1 {
     flex-wrap: wrap;
 }
 
+.buttons .btn {
+    flex:1
+}
+
 .btn {
     padding: 15px 25px;
     background: #00aaff;
@@ -126,7 +135,6 @@ h1 {
     font-size: 18px;
     color: white;
     cursor: pointer;
-    flex: 1;
 }
 
 .btn.small {
@@ -136,4 +144,21 @@ h1 {
 
 .btn:active {
     background: #0077aa;
+}
+
+.green {
+    background: darkseagreen;
+}
+
+.red {
+    background: #cd4646;
+}
+.blue {
+    background: royalblue;
+}
+.orange {
+    background: #f68300;
+}
+.black {
+    background: #1c1c1c;
 }

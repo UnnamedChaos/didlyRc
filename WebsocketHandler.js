@@ -30,14 +30,12 @@ export function setupWebSocket(server) {
         ws.isAlive = true;
 
         ws.on('pong', () => {
-            console.log(`Pong: ${ip}`);
             ws.isAlive = true;
         });
 
         ws.on('close', () => {
             console.log(`Disconnected: ${ip}`);
-            disconnect(espClients.findIndex(entry => entry.client === ws), espClients);
-            disconnect(controllers.findIndex(entry => entry.ip === ip), controllers);
+            disconnectFromCache(ws);
         });
 
         ws.on('error', (err) => {
@@ -45,16 +43,24 @@ export function setupWebSocket(server) {
         });
     });
 
+    function disconnectFromCache(ws) {
+        disconnect(espClients.findIndex(entry => entry.ws === ws), espClients);
+        disconnect(controllers.findIndex(entry => entry.ws === ws), controllers);
+        updateControllers();
+        console.log("Disconnected " +ws.id+" from cache. Number of clients: " + espClients.length +" and number of controllers: " + controllers.length );
+    }
+
     setInterval(() => {
         wss.clients.forEach((ws) => {
             if (!ws.isAlive) {
                 console.log('Terminating dead client');
+                disconnectFromCache(ws);
                 return ws.terminate();
             }
             ws.isAlive = false;
             ws.ping();
         });
-    }, 30000);
+    }, 5000);
 
     return wss;
 }

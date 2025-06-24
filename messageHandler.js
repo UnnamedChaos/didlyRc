@@ -13,7 +13,9 @@ const espMessageTypes = {
 const serverMessageTypes = {
     REGISTER: "REGISTER",
     REGISTER_CONTROLLER: "REGISTER_CONTROLLER",
+    DISCONNECT_ESP: "DISCONNECT_ESP",
     REGISTRATION_SUCCESSFUL: "REGISTRATION_SUCCESSFUL",
+    DISCONNECT_SUCCESSFUL: "DISCONNECT_SUCCESSFUL",
     UPDATE_CLIENTS: "UPDATE_CLIENTS"
 };
 
@@ -21,11 +23,18 @@ const serverMessageTypes = {
 export let espClients = [];
 export let controllers = [];
 
+function findEsp(id) {
+    let esp = espConfig.filter((esp) => {
+        return esp.id === id
+    })[0];
+    return esp;
+}
+
 function registerESP(ws, parsed) {
     const index = espClients.findIndex(v => v.id === parsed.value);
     if (index > -1) espClients.splice(index, 1);
     console.log(`ESP with id ${parsed.value} to be registered.`);
-    let esp = espConfig.filter((esp) => {return esp.id === parsed.value})[0];
+    let esp = findEsp(parsed.value);
     if(esp){
         espClients.push({ ws, id: parsed.value , name: esp.name, esp});
         ws.send(`ESP with id ${parsed.value} registered.`);
@@ -44,9 +53,11 @@ export function updateControllers() {
 }
 
 function registerClientToController(ws, client) {
+    let esp = findEsp(client.id);
     ws.send(JSON.stringify({
         "type": serverMessageTypes.REGISTRATION_SUCCESSFUL.toString(),
-        "value": client.id.toString()
+        "value": client.id.toString(),
+        "background": esp.background
     }));
     updateControllers();
 }
@@ -86,6 +97,11 @@ function proxyMessage(req, message, parsed) {
 
             if(parsed.type === espMessageTypes.TURN){
                 parsed.value =  parseFloat(parsed.value) + parseFloat(controller.client.esp.trim);
+                if(parsed.value > 1 - controller.client.esp.limit.right){
+                    parsed.value = 1 - controller.client.esp.limit.right;
+                } else if (parsed.value < -1 + controller.client.esp.limit.left){
+                    parsed.value = -1 + controller.client.esp.limit.left;
+                }
             }
             if(parsed.type === espMessageTypes.WINCH){
                 if(Math.abs(parsed.value) <= controller.client.esp.winchDeadzone){
@@ -94,9 +110,27 @@ function proxyMessage(req, message, parsed) {
                     parsed.value = Math.sign(parsed.value) * Math.abs(parsed.value).map(controller.client.esp.winchDeadzone,1,0,1);
                 }
             }
+            if(parsed.type === espMessageTypes.DRIVE){
+                if(controller.client.esp.inverse){
+                    parsed.value = -parsed.value;
+                }
+            }
             console.debug("Sending message to " + controller.ip + ": " + JSON.stringify(parsed));
             controller.client.ws.send(JSON.stringify(parsed));
         }
+    }
+}
+
+function disconnectEsp(req, ws, parsed) {
+    let controller = controllers.find(value => value.ip === req.socket.remoteAddress);
+    if(controller){
+        console.log("Disconnecting controller with ip " + req.socket.remoteAddress + " from its esp:" + controller.client.id);
+        controller.client = undefined;
+        ws.send(JSON.stringify({
+            "type": serverMessageTypes.DISCONNECT_SUCCESSFUL.toString(),
+            "value": undefined
+        }));
+        updateControllers();
     }
 }
 
@@ -105,6 +139,8 @@ export function parseMessage(req, ws, parsed, message) {
         registerESP(ws, parsed);
     } else if (parsed.type === serverMessageTypes.REGISTER_CONTROLLER) {
         registerController(req, ws, parsed);
+    } else if (parsed.type === serverMessageTypes.DISCONNECT_ESP) {
+        disconnectEsp(req, ws, parsed);
     } else {
         proxyMessage(req, message, parsed);
     }

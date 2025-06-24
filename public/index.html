@@ -10,6 +10,8 @@
 
 <div class="top-bar">
     <div class="menu">
+        <button id="reverse-btn" class="btn small">Reverse Controls</button>
+        <button id="disconnect-btn" class="btn small">Disconnect</button>
         <div class="dropdown">
             <button class="dropdown-btn">Select Vehicle</button>
             <div class="dropdown-content" id="esp-dropdown"></div>
@@ -37,7 +39,7 @@
     <button class="btn" onclick="send(JSON.stringify({ type: 'LIGHT_FRONT', value: null }))">Lights</button>
 </div>
 
-<script src="script.js"></script>
+<script type="module"  src="script.js"></script>
 
 </body>
 </html>

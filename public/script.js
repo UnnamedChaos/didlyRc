@@ -1,5 +1,9 @@
+import {disconnectBtn, reverse} from "./btn.js";
+
 const ws = new WebSocket(`ws://${location.hostname}:3000/ws`);
-let clientId = -1;
+
+export let clientId = -1;
+
 ws.onopen = () => {
     console.log("WebSocket connected");
     send(JSON.stringify({ type: "REGISTER_CONTROLLER", value: 0 }));
@@ -10,15 +14,23 @@ ws.onmessage = (msg) => {
     if (data.type === "REGISTRATION_SUCCESSFUL") {
         console.log("Registration of controller successful with id " + data.value);
         clientId = data.value;
-        const btn = document.getElementById('espClient_' + data.value);
+        disconnectBtn.style.setProperty("display", "flex");
+        document.body.classList.remove("black","blue", "orange", "red", "green");
+        document.body.classList.add(data.background);
         updateClients();
-    }
-    if (data.type === "UPDATE_CLIENTS") {
+    }else if (data.type === "UPDATE_CLIENTS") {
+        updateClients();
+    }else if (data.type === "DISCONNECT_SUCCESSFUL") {
+        console.log("Disconnect of controller successful");
+        clientId = undefined;
+        disconnectBtn.style.setProperty("display", "none");
+        document.body.classList.remove("blue", "orange", "red", "green");
+        document.body.classList.add("black");
         updateClients();
     }
 };
 
-function send(msg) {
+export function send(msg) {
     if (ws.readyState === WebSocket.OPEN) {
         ws.send(msg);
     }
@@ -46,48 +58,13 @@ function updateClients() {
                 }
                 container.appendChild(btn);
             });
+            if(data.length === 0){
+                const btn = document.createElement('button');
+                btn.textContent = "No clients";
+                container.appendChild(btn);
+            }
         });
 }
-updateClients();
-
-
-const tiltDownBtn = document.getElementById("tilt-down");
-let tiltDownInterval = null;
-const tiltUpBtn = document.getElementById("tilt-up");
-let tiltUpInterval = null;
-
-tiltDownBtn.addEventListener('touchstart', e => {
-    e.preventDefault();
-    tiltDownInterval = setInterval(() => {
-        send(JSON.stringify({ type: 'TILT', value: -6 }));
-    }, 50);
-});
-
-tiltUpBtn.addEventListener('touchstart', e => {
-    e.preventDefault();
-    tiltUpInterval = setInterval(() => {
-        send(JSON.stringify({ type: 'TILT', value: 6 }));
-    }, 50);
-});
-
-tiltDownBtn.addEventListener('touchend', () => clearInterval(tiltDownInterval));
-tiltUpBtn.addEventListener('touchend', () => clearInterval(tiltUpInterval));
-
-tiltDownBtn.addEventListener('mousedown', () => {
-    tiltDownInterval = setInterval(() => {
-        send(JSON.stringify({ type: 'TILT', value: -6 }));
-    }, 20);
-});
-tiltDownBtn.addEventListener('mouseup', () => clearInterval(tiltDownInterval));
-tiltDownBtn.addEventListener('mouseleave', () => clearInterval(tiltDownInterval));
-
-tiltUpBtn.addEventListener('mousedown', () => {
-    tiltUpInterval = setInterval(() => {
-        send(JSON.stringify({ type: 'TILT', value: 6 }));
-    }, 20);
-});
-tiltUpBtn.addEventListener('mouseup', () => clearInterval(tiltUpInterval));
-tiltUpBtn.addEventListener('mouseleave', () => clearInterval(tiltUpInterval));
 
 function setupStick(containerId, onMove) {
     const container = document.getElementById(containerId);
@@ -193,12 +170,22 @@ function setupStick(containerId, onMove) {
 }
 
 setupStick("left-stick", pos => {
-    send(JSON.stringify({ type: "TURN", value: pos.x }));
-    send(JSON.stringify({ type: "WINCH", value: pos.y }));
+    if(reverse){
+        send(JSON.stringify({ type: "DRIVE", value: pos.y }));
+    }
+    else{
+        send(JSON.stringify({ type: "TURN", value: pos.x }));
+        send(JSON.stringify({ type: "WINCH", value: pos.y }));
+    }
 });
 
 setupStick("right-stick", pos => {
-    send(JSON.stringify({ type: "DRIVE", value: pos.y }));
+    if(reverse){
+        send(JSON.stringify({ type: "TURN", value: pos.x }));
+        send(JSON.stringify({ type: "WINCH", value: pos.y }));
+    } else{
+        send(JSON.stringify({ type: "DRIVE", value: pos.y }));
+    }
 });
 
 const fullscreenBtn = document.getElementById('fullscreen-btn');
@@ -231,6 +218,7 @@ fullscreenBtn.addEventListener('click', () => {
         });
     }
 });
+
 function setFullHeight() {
     document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
     console.log("Resize");
@@ -247,3 +235,6 @@ document.addEventListener('fullscreenchange', () => {
         document.body.classList.remove('fullscreen');
     }
 });
+
+
+updateClients();
