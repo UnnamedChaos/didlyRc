@@ -71,6 +71,8 @@ function setupStick(containerId, onMove) {
     const stick = container.querySelector('.stick');
     const rect = () => container.getBoundingClientRect();
 
+    let interval = null;
+
     let activeTouchId = null;
 
     function getRelativePosition(touch) {
@@ -106,10 +108,14 @@ function setupStick(containerId, onMove) {
 
     container.addEventListener('touchstart', e => {
         for (const touch of e.changedTouches) {
+            clearInterval(interval);
             if (container.contains(document.elementFromPoint(touch.clientX, touch.clientY))) {
                 activeTouchId = touch.identifier;
                 const pos = getRelativePosition(touch);
                 onMove(pos);
+                interval = setInterval(() => {
+                    onMove(getRelativePosition(touch));
+                },50)
                 break;
             }
         }
@@ -117,9 +123,13 @@ function setupStick(containerId, onMove) {
 
     container.addEventListener('touchmove', e => {
         for (const touch of e.changedTouches) {
+            clearInterval(interval);
             if (touch.identifier === activeTouchId) {
                 const pos = getRelativePosition(touch);
                 onMove(pos);
+                interval = setInterval(() => {
+                    onMove(getRelativePosition(touch));
+                },50)
                 e.preventDefault();
                 break;
             }
@@ -134,6 +144,7 @@ function setupStick(containerId, onMove) {
                 break;
             }
         }
+        clearInterval(interval);
     });
 
     container.addEventListener('touchcancel', e => {
@@ -144,25 +155,34 @@ function setupStick(containerId, onMove) {
                 break;
             }
         }
+        clearInterval(interval);
     });
 
-    let dragging = false;
+    let mouseDown = false;
     container.addEventListener('mousedown', e => {
-        dragging = true;
+        mouseDown = true;
         onMove(getRelativePosition(e));
     });
 
     container.addEventListener('mousemove', e => {
-        if (dragging) onMove(getRelativePosition(e));
+        if (mouseDown) {
+            clearInterval(interval);
+            onMove(getRelativePosition(e));
+            interval = setInterval(() => {
+                onMove(getRelativePosition(e));
+            },50);
+        }
     });
 
     container.addEventListener('mouseup', () => {
-        dragging = false;
+        mouseDown = false;
+        clearInterval(interval);
         resetStick();
     });
 
     container.addEventListener('mouseleave', () => {
-        dragging = false;
+        mouseDown = false;
+        clearInterval(interval);
         resetStick();
     });
 
