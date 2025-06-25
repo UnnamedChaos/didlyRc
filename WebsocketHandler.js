@@ -1,5 +1,5 @@
 import { WebSocketServer } from 'ws';
-import {controllers, espClients, parseMessage, updateControllers} from './messageHandler.js';
+import {controllers, disconnectWs, espClients, parseMessage, updateControllers} from './messageHandler.js';
 
 export function setupWebSocket(server) {
     const wss = new WebSocketServer({ server });
@@ -40,6 +40,8 @@ export function setupWebSocket(server) {
 
         ws.on('error', (err) => {
             console.error(`WebSocket error:`, err);
+            disconnectFromCache(ws);
+
         });
     });
 
@@ -48,6 +50,7 @@ export function setupWebSocket(server) {
         disconnect(controllers.findIndex(entry => entry.ws === ws), controllers);
         updateControllers();
         console.log("Disconnected " +ws.id+" from cache. Number of clients: " + espClients.length +" and number of controllers: " + controllers.length );
+        disconnectWs(ws);
     }
 
     setInterval(() => {

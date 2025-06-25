@@ -121,17 +121,25 @@ function proxyMessage(req, message, parsed) {
     }
 }
 
-function disconnectEsp(req, ws, parsed) {
-    let controller = controllers.find(value => value.ip === req.socket.remoteAddress);
-    if(controller){
-        console.log("Disconnecting controller with ip " + req.socket.remoteAddress + " from its esp:" + controller.client.id);
+export function disconnectWs(ws) {
+    ws.send(JSON.stringify({
+        "type": serverMessageTypes.DISCONNECT_SUCCESSFUL.toString(),
+        "value": undefined
+    }));
+}
+
+function disconnectController(controller) {
+    if (controller) {
         controller.client = undefined;
-        ws.send(JSON.stringify({
-            "type": serverMessageTypes.DISCONNECT_SUCCESSFUL.toString(),
-            "value": undefined
-        }));
+        disconnectWs(controller.ws);
         updateControllers();
     }
+}
+
+function disconnectEsp(req) {
+    let controller = controllers.find(value => value.ip === req.socket.remoteAddress);
+    console.log("Disconnecting controller with ip " + req.socket.remoteAddress + " from its esp:" + controller.client.id);
+    disconnectController(controller);
 }
 
 export function parseMessage(req, ws, parsed, message) {

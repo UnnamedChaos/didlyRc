@@ -1,37 +1,72 @@
 import {disconnectBtn, reverse} from "./btn.js";
 
-const ws = new WebSocket(`ws://${location.hostname}:3000/ws`);
+let ws;
+let reconnectInterval = 1000; // Start with 1 second
+const maxReconnectInterval = 10000; // Cap at 10 seconds
 
 export let clientId = -1;
 
-ws.onopen = () => {
-    console.log("WebSocket connected");
-    send(JSON.stringify({ type: "REGISTER_CONTROLLER", value: 0 }));
-};
-ws.onmessage = (msg) => {
-    console.log("Server:", msg.data)
-    const data = JSON.parse(msg.data);
-    if (data.type === "REGISTRATION_SUCCESSFUL") {
-        console.log("Registration of controller successful with id " + data.value);
-        clientId = data.value;
-        disconnectBtn.style.setProperty("display", "flex");
-        document.body.classList.remove("black","blue", "orange", "red", "green");
-        document.body.classList.add(data.background);
-        updateClients();
-    }else if (data.type === "UPDATE_CLIENTS") {
-        updateClients();
-    }else if (data.type === "DISCONNECT_SUCCESSFUL") {
-        console.log("Disconnect of controller successful");
-        clientId = undefined;
-        disconnectBtn.style.setProperty("display", "none");
-        document.body.classList.remove("blue", "orange", "red", "green");
-        document.body.classList.add("black");
-        updateClients();
-    }
-};
+function setDefaultDesign() {
+    disconnectBtn.style.setProperty("display", "none");
+    document.body.classList.remove("blue", "orange", "red", "green");
+    document.body.classList.add("black");
+}
 
+function connectWebSocket() {
+    ws = new WebSocket(`ws://${location.hostname}:3000/ws`);
+
+    ws.onopen = () => {
+        console.log("WebSocket connected");
+        reconnectInterval = 1000; // Reset on success
+        send(JSON.stringify({ type: "REGISTER_CONTROLLER", value: 0 }));
+        updateClients();
+        setDefaultDesign();
+    };
+
+    ws.onclose = () => {
+        console.warn("WebSocket disconnected. Attempting to reconnect...");
+        attemptReconnect();
+        clientId = -1;
+        setDefaultDesign();
+    };
+
+    ws.onerror = (err) => {
+        console.error("WebSocket error", err);
+        ws.close(); // Ensures onclose is triggered
+        clientId = -1;
+        setDefaultDesign();
+    };
+
+    ws.onmessage = (msg) => {
+        console.log("Server:", msg.data);
+        const data = JSON.parse(msg.data);
+
+        if (data.type === "REGISTRATION_SUCCESSFUL") {
+            console.log("Registration of controller successful with id " + data.value);
+            clientId = data.value;
+            disconnectBtn.style.setProperty("display", "flex");
+            document.body.classList.remove("black", "blue", "orange", "red", "green");
+            document.body.classList.add(data.background);
+            updateClients();
+        } else if (data.type === "UPDATE_CLIENTS") {
+            updateClients();
+        } else if (data.type === "DISCONNECT_SUCCESSFUL") {
+            console.log("Disconnect of controller successful");
+            clientId = undefined;
+            setDefaultDesign();
+            updateClients();
+        }
+    };
+}
+function attemptReconnect() {
+    setTimeout(() => {
+        console.log(`Reconnecting... (next attempt in ${reconnectInterval / 1000}s)`);
+        connectWebSocket();
+        reconnectInterval = Math.min(reconnectInterval * 2, maxReconnectInterval);
+    }, reconnectInterval);
+}
 export function send(msg) {
-    if (ws.readyState === WebSocket.OPEN) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(msg);
     }
 }
@@ -256,5 +291,5 @@ document.addEventListener('fullscreenchange', () => {
     }
 });
 
-
+connectWebSocket();
 updateClients();
