@@ -2,7 +2,7 @@
   "id": "1",
   "name": "Rot",
   "winchDeadzone": 0.3,
-  "trim": "-0.18",
+  "trim": "0",
   "background": "red",
   "limit": {
     "left": "0.08",
