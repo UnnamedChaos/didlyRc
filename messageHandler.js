@@ -115,7 +115,7 @@ function proxyMessage(req, message, parsed) {
                     parsed.value = -parsed.value;
                 }
             }
-            // console.debug("Sending message to " + controller.ip + ": " + JSON.stringify(parsed));
+            console.debug("Sending message to " + controller.ip + ": " + JSON.stringify(parsed));
             controller.client.ws.send(JSON.stringify(parsed));
         }
     }

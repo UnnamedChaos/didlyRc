@@ -4,6 +4,8 @@ export const disconnectBtn = document.getElementById("disconnect-btn");
 export const reverseBtn = document.getElementById("reverse-btn");
 export const tiltDownBtn = document.getElementById("tilt-down");
 export const tiltUpBtn = document.getElementById("tilt-up");
+export const frontLightBtn = document.getElementById("frontLightBtn");
+export const blinkerBtn = document.getElementById("blinkerBtn");
 
 
 let tiltDownInterval = null;
@@ -47,6 +49,14 @@ tiltUpBtn.addEventListener('mouseleave', () => clearInterval(tiltUpInterval));
 
 disconnectBtn.addEventListener('click', () => {
     send(JSON.stringify({ type: "DISCONNECT_ESP", value: clientId }));
+});
+
+frontLightBtn.addEventListener('click', () => {
+    send(JSON.stringify({ type: "LIGHT_FRONT", value: null }));
+});
+
+blinkerBtn.addEventListener('click', () => {
+    send(JSON.stringify({ type: "LIGHT_BLINKER", value: null }));
 });
 
 reverseBtn.addEventListener('click', () => {
