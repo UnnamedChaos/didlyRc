@@ -1,6 +1,6 @@
-import espConfig from './espConfig.json' with { type: 'json' };
+import {checkStatus, controllers, disconnectEsp, findEspInConfig, registerController, registerESP} from "./clientController.js";
 
-const espMessageTypes = {
+export const espMessageTypes = {
     DRIVE: "DRIVE",
     TURN: "TURN",
     LIGHT_FRONT: "LIGHT_FRONT",
@@ -10,39 +10,27 @@ const espMessageTypes = {
     WINCH: "WINCH",
 };
 
-const serverMessageTypes = {
+export const skidMessageTypes = {
+    M1: "S1",
+    M2: "M2",
+    M3: "S3",
+    S1: "S1",
+    S2: "S2",
+    LIGHT_FRONT: "LIGHT_FRONT",
+    LIGHT_BLINKER: "LIGHT_BLINKER",
+    SIGN_ON: "SIGN_ON",
+};
+
+export const serverMessageTypes = {
     REGISTER: "REGISTER",
     REGISTER_CONTROLLER: "REGISTER_CONTROLLER",
     DISCONNECT_ESP: "DISCONNECT_ESP",
     REGISTRATION_SUCCESSFUL: "REGISTRATION_SUCCESSFUL",
     DISCONNECT_SUCCESSFUL: "DISCONNECT_SUCCESSFUL",
-    UPDATE_CLIENTS: "UPDATE_CLIENTS"
+    UPDATE_CLIENTS: "UPDATE_CLIENTS",
+    REPORT: "REPORT"
 };
 
-
-export let espClients = [];
-export let controllers = [];
-
-function findEsp(id) {
-    let esp = espConfig.filter((esp) => {
-        return esp.id === id
-    })[0];
-    return esp;
-}
-
-function registerESP(ws, parsed) {
-    const index = espClients.findIndex(v => v.id === parsed.value);
-    if (index > -1) espClients.splice(index, 1);
-    console.log(`ESP with id ${parsed.value} to be registered.`);
-    let esp = findEsp(parsed.value);
-    if(esp){
-        espClients.push({ ws, id: parsed.value , name: esp.name, esp});
-        ws.send(`ESP with id ${parsed.value} registered.`);
-        console.log(`Found ESP in config. ESP with id ${parsed.value} registered.`);
-        console.log(`Total registered esps: ` + espClients.length);
-        updateControllers();
-    }
-}
 
 export function updateControllers() {
     controllers.forEach(controller => {
@@ -52,46 +40,8 @@ export function updateControllers() {
     })
 }
 
-function registerClientToController(ws, client) {
-    let esp = findEsp(client.id);
-    ws.send(JSON.stringify({
-        "type": serverMessageTypes.REGISTRATION_SUCCESSFUL.toString(),
-        "value": client.id.toString(),
-        "background": esp.background
-    }));
-    updateControllers();
-}
-
-function registerController(req, ws, parsed) {
-    console.log(`Register controller with ip: ${req.socket.remoteAddress} to id ${parsed.value}`);
-    const controller = controllers.find((value) => value.ip === req.socket.remoteAddress);
-    const client = espClients.find((c) => c.id === parsed.value);
-    if (!controller) {
-        if (client && !isEspClientConnected(client)) {
-            console.log(`Connecting controller with ip ${req.socket.remoteAddress} to client with id ${parsed.value}`);
-            controllers.push({ ip: req.socket.remoteAddress, client , ws});
-            registerClientToController(ws, client);
-        } else {
-            controllers.push({ ip: req.socket.remoteAddress, undefined , ws});
-        }
-    } else {
-        console.log(`Found already registered controller.`);
-        if (client && !isEspClientConnected(client)) {
-            console.log(`Reregister controller with ip ${controller.ip} to client with id ${client.id}.`)
-            controller.client = client;
-            registerClientToController(ws, client);
-        }else{
-            console.log(`Could not register controller.`);
-        }
-    }
-}
-
-function isEspClientConnected(client){
-    return controllers.find(value => value.client && value.client.id === client.id) !== undefined;
-}
-
-function proxyMessage(req, message, parsed) {
-    if (message && espMessageTypes[parsed.type]) {
+function proxyMessage(req, parsed) {
+    if ((espMessageTypes[parsed.type] || skidMessageTypes[parsed.type])) {
         const controller = controllers.find(value => value.ip === req.socket.remoteAddress);
         if(controller && controller.client){
 
@@ -114,45 +64,68 @@ function proxyMessage(req, message, parsed) {
                 if(controller.client.esp.inverse){
                     parsed.value = -parsed.value;
                 }
+
             }
-            console.debug("Sending message to " + controller.ip + ": " + JSON.stringify(parsed));
-            controller.client.ws.send(JSON.stringify(parsed));
+            if(parsed.type === skidMessageTypes.S1){
+                if(parsed.value < controller.client.esp.limit.bucket){
+                    parsed.value = controller.client.esp.limit.bucket;
+                }
+            }
+            if(parsed.type === skidMessageTypes.M2.toString()){
+                const s1Value = parsed.sliders.filter(value => value.type === skidMessageTypes.S1)[0].value;
+                if(s1Value ){
+                    if(parsed.value > 0){
+                        const msg = createMessage("S1", s1Value + parsed.value * 0.0025);
+                        proxyMessage(req, msg)
+                        controller.ws.send(JSON.stringify(msg))
+                    } else{
+                        const msg = createMessage("S1", s1Value + parsed.value * 0.0025);
+                        proxyMessage(req, msg)
+                        controller.ws.send(JSON.stringify(msg))
+                    }
+                }
+            }
+            if(!controller.lastMsg || Math.abs(controller.lastMsg.value - parsed.value) > 0.05 || controller.canSendMsg){
+                controller.client.ws.send(JSON.stringify(parsed));
+                controller.lastMsg = parsed;
+                controller.canSendMsg = false;
+                setInterval(() => {
+                    controller.canSendMsg = true;
+                }, 300);
+            }
         }
     }
 }
 
-export function disconnectWs(ws) {
-    ws.send(JSON.stringify({
-        "type": serverMessageTypes.DISCONNECT_SUCCESSFUL.toString(),
-        "value": undefined
-    }));
-}
-
-function disconnectController(controller) {
-    if (controller) {
-        controller.client = undefined;
-        disconnectWs(controller.ws);
-        updateControllers();
-    }
-}
-
-function disconnectEsp(req) {
-    let controller = controllers.find(value => value.ip === req.socket.remoteAddress);
-    console.log("Disconnecting controller with ip " + req.socket.remoteAddress + " from its esp:" + controller.client.id);
-    disconnectController(controller);
-}
-
-export function parseMessage(req, ws, parsed, message) {
+export function parseMessage(req, ws, parsed) {
     if (parsed.type === serverMessageTypes.REGISTER) {
         registerESP(ws, parsed);
     } else if (parsed.type === serverMessageTypes.REGISTER_CONTROLLER) {
         registerController(req, ws, parsed);
     } else if (parsed.type === serverMessageTypes.DISCONNECT_ESP) {
         disconnectEsp(req, ws, parsed);
+    }  else if (parsed.type === serverMessageTypes.REPORT) {
+        checkStatus(ws, parsed)
     } else {
-        proxyMessage(req, message, parsed);
+        proxyMessage(req, parsed);
     }
 }
+
+function createMessage(type, value) {
+    return  {type,value}
+}
+
+export function resetEsp(esp ,ws){
+    console.log("Resetting esp.");
+    if(esp.type === "SKID"){
+        const msg = createMessage("S1", 1.0);
+        ws.send(JSON.stringify(msg));
+    }
+    ws.send(JSON.stringify({
+        "type": serverMessageTypes.REPORT.toString()
+    }));
+}
+
 Number.prototype.map = function (in_min, in_max, out_min, out_max) {
     return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }

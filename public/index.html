@@ -5,6 +5,7 @@
     <title>Forklift Controller</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="slider.css" />
 </head>
 <body>
 
@@ -29,6 +30,16 @@
     <div id="left-stick" class="stick-container">
         <div class="stick"></div>
     </div>
+    <div id="skid-controls" class="skid-controls" style="display: none;">
+        <div class="v-slider" id="vSlider">
+            <div class="v-slider-fill" id="vSliderFill"></div>
+            <div class="v-slider-thumb" id="vSliderThumb"></div>
+        </div>
+        <div class="v-slider" id="wSlider">
+            <div class="v-slider-fill" id="wSliderFill"></div>
+            <div class="v-slider-thumb" id="wSliderThumb"></div>
+        </div>
+    </div>
     <div id="right-stick" class="stick-container">
         <div class="stick"></div>
     </div>
@@ -40,6 +51,7 @@
 </div>
 
 <script type="module"  src="script.js"></script>
+<script type="module"  src="slider.js"></script>
 
 </body>
 </html>

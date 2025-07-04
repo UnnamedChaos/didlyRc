@@ -1,14 +1,16 @@
-import {disconnectBtn, reverse} from "./btn.js";
+import {disconnectBtn, leftStick, reverse, skidControlls} from "./btn.js";
+import {setSliderValue} from "./slider.js";
 
 let ws;
 let reconnectInterval = 1000; // Start with 1 second
 const maxReconnectInterval = 10000; // Cap at 10 seconds
 
 export let clientId = -1;
+export let espType;
 
 function setDefaultDesign() {
     disconnectBtn.style.setProperty("display", "none");
-    document.body.classList.remove("blue", "orange", "red", "green");
+    document.body.classList.remove("blue", "orange", "red", "green", "yellow");
     document.body.classList.add("black");
 }
 
@@ -44,13 +46,23 @@ function connectWebSocket() {
         if (data.type === "REGISTRATION_SUCCESSFUL") {
             console.log("Registration of controller successful with id " + data.value);
             clientId = data.value;
+            espType = data.espType
             disconnectBtn.style.setProperty("display", "flex");
-            document.body.classList.remove("black", "blue", "orange", "red", "green");
+            document.body.classList.remove("black", "blue", "orange", "red", "green", "yellow");
             document.body.classList.add(data.background);
+            if(espType === "SKID"){
+                leftStick.style.setProperty("display", "none");
+                skidControlls.style.removeProperty("display", "none");
+            } else {
+                skidControlls.style.setProperty("display", "none");
+                leftStick.style.removeProperty("display", "none");
+            }
             updateClients();
         } else if (data.type === "UPDATE_CLIENTS") {
             updateClients();
-        } else if (data.type === "DISCONNECT_SUCCESSFUL") {
+        }  else if (data.type === "S1") {
+            setSliderValue("S1", data.value);
+        }  else if (data.type === "DISCONNECT_SUCCESSFUL") {
             console.log("Disconnect of controller successful");
             clientId = undefined;
             setDefaultDesign();
@@ -225,21 +237,47 @@ function setupStick(containerId, onMove) {
 }
 
 setupStick("left-stick", pos => {
-    if(reverse){
-        send(JSON.stringify({ type: "DRIVE", value: pos.y }));
-    }
-    else{
-        send(JSON.stringify({ type: "TURN", value: pos.x }));
-        send(JSON.stringify({ type: "WINCH", value: pos.y }));
+    if(espType === "FORK"){
+        if(reverse){
+            send(JSON.stringify({ type: "DRIVE", value: pos.y }));
+        }
+        else {
+            send(JSON.stringify({type: "TURN", value: pos.x}));
+            send(JSON.stringify({type: "WINCH", value: pos.y}));
+        }
+    } else if(espType === "SKID"){
+    } else {
+        console.log("Could not find type.");
     }
 });
 
 setupStick("right-stick", pos => {
-    if(reverse){
-        send(JSON.stringify({ type: "TURN", value: pos.x }));
-        send(JSON.stringify({ type: "WINCH", value: pos.y }));
-    } else{
-        send(JSON.stringify({ type: "DRIVE", value: pos.y }));
+    let x = -parseFloat(pos.x);
+    let y = -parseFloat(pos.y);
+    if(espType === "FORK"){
+        if(reverse){
+            send(JSON.stringify({ type: "TURN", value: x }));
+            send(JSON.stringify({ type: "WINCH", value: y }));
+        } else{
+            send(JSON.stringify({ type: "DRIVE", value: y }));
+        }
+    } else if(espType === "SKID"){
+        let forward = y; // Invert if necessary, depending on your stick Y orientation
+        let turn = -x;
+
+        // Combine inputs for differential drive
+        let leftMotor = forward + turn;
+        let rightMotor = forward - turn;
+
+        // Normalize if any motor exceeds 1.0
+        const maxMagnitude = Math.max(1.0, Math.abs(leftMotor), Math.abs(rightMotor));
+        leftMotor /= maxMagnitude;
+        rightMotor /= maxMagnitude;
+
+        send(JSON.stringify({ type: "M1", value: leftMotor, force: true }));
+        send(JSON.stringify({ type: "M3", value: rightMotor, force: true }));
+    } else {
+        console.log("Could not find type.");
     }
 });
 

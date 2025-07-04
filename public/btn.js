@@ -6,10 +6,13 @@ export const tiltDownBtn = document.getElementById("tilt-down");
 export const tiltUpBtn = document.getElementById("tilt-up");
 export const frontLightBtn = document.getElementById("frontLightBtn");
 export const blinkerBtn = document.getElementById("blinkerBtn");
+export const leftStick = document.getElementById("left-stick");
+export const skidControlls = document.getElementById("skid-controls");
+export const armSlider = document.getElementById('arm-slider');
+export const bucketSlider = document.getElementById('bucket-slider');
 
 
-let tiltDownInterval = null;
-let tiltUpInterval = null;
+let tiltDownInterval, tiltUpInterval;
 export let reverse = false;
 
 tiltDownBtn.addEventListener('touchstart', e => {

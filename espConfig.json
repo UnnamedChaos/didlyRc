@@ -7,7 +7,8 @@
   "limit": {
     "left": "0.08",
     "right": "0.5"
-  }
+  },
+  "type":"FORK"
 },{
   "id": "2",
   "name": "Orange",
@@ -17,7 +18,8 @@
   "limit": {
     "left": "0.08",
     "right": "0.5"
-  }
+  },
+  "type":"FORK"
 },{
   "id": "3",
   "name": "Blau",
@@ -28,7 +30,8 @@
     "left": "0.08",
     "right": "0.5"
   },
-  "inverse": true
+  "inverse": false,
+  "type":"FORK"
 },{
   "id": "4",
   "name": "Grün",
@@ -38,5 +41,19 @@
   "limit": {
     "left": "0.08",
     "right": "0.5"
-  }
+  },
+  "type":"FORK"
+},{
+  "id": "5",
+  "name": "Gelb",
+  "winchDeadzone": 0.1,
+  "trim": "0",
+  "background": "yellow",
+  "limit": {
+    "left": "0",
+    "bucket": "-0.2"
+  },
+  "armMotor": "M2",
+  "type":"SKID",
+  "inverse": false
 }]

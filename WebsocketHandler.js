@@ -1,16 +1,11 @@
 import { WebSocketServer } from 'ws';
-import {controllers, disconnectWs, espClients, parseMessage, updateControllers} from './messageHandler.js';
+import {
+    parseMessage
+} from './messageHandler.js';
+import {disconnectFromCache} from "./clientController.js";
 
 export function setupWebSocket(server) {
     const wss = new WebSocketServer({ server });
-
-    function disconnect(index, array) {
-        if (index > -1) {
-            array.splice(index, 1);
-            console.log("Disconnected ws from db.");
-            updateControllers();
-        }
-    }
 
     wss.on('connection', (ws, req) => {
         const ip = req.socket.remoteAddress;
@@ -24,7 +19,7 @@ export function setupWebSocket(server) {
                 console.warn('Invalid JSON:', err);
                 return;
             }
-            parseMessage(req,  ws, parsed, message);
+            parseMessage(req,  ws, parsed);
         });
 
         ws.isAlive = true;
@@ -45,13 +40,6 @@ export function setupWebSocket(server) {
         });
     });
 
-    function disconnectFromCache(ws) {
-        disconnect(espClients.findIndex(entry => entry.ws === ws), espClients);
-        disconnect(controllers.findIndex(entry => entry.ws === ws), controllers);
-        updateControllers();
-        console.log("Disconnected " +ws.id+" from cache. Number of clients: " + espClients.length +" and number of controllers: " + controllers.length );
-        disconnectWs(ws);
-    }
 
     setInterval(() => {
         wss.clients.forEach((ws) => {
