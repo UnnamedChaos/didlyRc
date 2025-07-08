@@ -100,8 +100,10 @@ export function removeClientFromControllers(ws) {
 
 export function disconnectEsp(req) {
     let controller = controllers.find(value => value.ip === req.socket.remoteAddress);
-    console.log("Disconnecting controller with ip " + req.socket.remoteAddress + " from its esp:" + controller.client.id);
-    disconnectController(controller);
+    if(controller.client){
+        console.log("Disconnecting controller with ip " + req.socket.remoteAddress + " from its esp:" + controller.client.id);
+        disconnectController(controller);
+    }
 }
 
 export function disconnectFromCache(ws) {
