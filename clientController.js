@@ -122,10 +122,14 @@ export function disconnect(index, array) {
     }
 }
 
+function isAnyStopTriggered(msg) {
+    return msg.stops && msg.stops.upper === 1 || msg.stops.lower === 1;
+}
+
 export function checkStatus(ws, msg) {
-    console.log("Performing status check.");
     let esp = findEspByWs(ws);
-    if(esp && msg.stops){
+    if(esp && esp.esp.type === "SKID" && isAnyStopTriggered(msg)){
+        console.log("Skid has blockage. ");
         if(msg.stops.upper){
             console.log("Found blockage of upper motor.");
             const msg = {
@@ -143,8 +147,37 @@ export function checkStatus(ws, msg) {
                 value: -0.5,
                 force: true
             }
-            console.log(JSON.stringify(msg));
             ws.send(JSON.stringify(msg));
+        }
+    } else if(esp && esp.esp.type === "FORK" && isAnyStopTriggered(msg)){
+        if(!esp.recentylUnblocked && (!esp.recentUnblockTries || esp.recentUnblockTries < 3)){
+            console.log("Fork has blockage.");
+            let dir = esp.lastForkDirection ? Math.sign(esp.lastForkDirection) : undefined;
+            if(dir){
+                const msg = {
+                    type: esp.esp.winchMotor,
+                    value: -dir * 0.3,
+                    force: true
+                }
+                ws.send(JSON.stringify(msg));
+            } else {
+                const msg = {
+                    type: esp.esp.winchMotor,
+                    value: -0.3,
+                    force: true
+                }
+                ws.send(JSON.stringify(msg));
+                esp.lastForkDirection = msg.value;
+            }
+            esp.recentUnblockTries = esp.recentUnblockTries ? esp.recentUnblockTries + 1 : 1;
+            esp.recentylUnblocked = true;
+            setInterval(() => {
+                esp.recentylUnblocked = false;
+            }, 1000)
+            setInterval(() => {
+                esp.recentylUnblocked = false;
+                esp.recentUnblockTries -= 1;
+            }, 3000)
         }
     }
 }

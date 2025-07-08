@@ -1,4 +1,4 @@
-import {disconnectBtn, leftStick, reverse, skidControlls, tiltDownBtn, tiltUpBtn} from "./btn.js";
+import {disconnectBtn, forkControls, leftStick, reverse, skidControlls} from "./btn.js";
 import {setSliderValue} from "./slider.js";
 
 let ws;
@@ -12,6 +12,7 @@ function setDefaultDesign() {
     disconnectBtn.style.setProperty("display", "none");
     document.body.classList.remove("blue", "orange", "red", "green", "yellow");
     document.body.classList.add("black");
+    document.getElementById("controls").style.setProperty("display", "none");
 }
 
 function connectWebSocket() {
@@ -50,16 +51,15 @@ function connectWebSocket() {
             disconnectBtn.style.setProperty("display", "flex");
             document.body.classList.remove("black", "blue", "orange", "red", "green", "yellow");
             document.body.classList.add(data.background);
+            document.getElementById("controls").style.setProperty("display", "flex");
             if(espType === "SKID"){
                 leftStick.style.setProperty("display", "none");
-                tiltUpBtn.style.setProperty("display", "none");
-                tiltDownBtn.style.setProperty("display", "none");
                 skidControlls.style.removeProperty("display", "none");
+                forkControls.style.setProperty("display", "none");
             } else {
                 skidControlls.style.setProperty("display", "none");
                 leftStick.style.removeProperty("display", "none");
-                tiltUpBtn.style.removeProperty("display", "none");
-                tiltDownBtn.style.removeProperty("display", "none");
+                forkControls.style.removeProperty("display", "none");
             }
             updateClients();
         } else if (data.type === "UPDATE_CLIENTS") {
@@ -241,13 +241,14 @@ function setupStick(containerId, onMove) {
 }
 
 setupStick("left-stick", pos => {
+    let x = parseFloat(pos.x);
+    let y = parseFloat(pos.y);
     if(espType === "FORK"){
         if(reverse){
-            send(JSON.stringify({ type: "DRIVE", value: pos.y }));
+            send(JSON.stringify({ type: "M1", value: y }));
         }
         else {
-            send(JSON.stringify({type: "TURN", value: pos.x}));
-            send(JSON.stringify({type: "WINCH", value: pos.y}));
+            send(JSON.stringify({type: "S1", value: x}));
         }
     } else if(espType === "SKID"){
     } else {
@@ -256,14 +257,13 @@ setupStick("left-stick", pos => {
 });
 
 setupStick("right-stick", pos => {
-    let x = -parseFloat(pos.x);
-    let y = -parseFloat(pos.y);
+    let x = parseFloat(pos.x);
+    let y = parseFloat(pos.y);
     if(espType === "FORK"){
         if(reverse){
-            send(JSON.stringify({ type: "TURN", value: x }));
-            send(JSON.stringify({ type: "WINCH", value: y }));
+            send(JSON.stringify({ type: "S1", value: x }));
         } else{
-            send(JSON.stringify({ type: "DRIVE", value: y }));
+            send(JSON.stringify({ type: "M1", value: y }));
         }
     } else if(espType === "SKID"){
         let forward = y; // Invert if necessary, depending on your stick Y orientation

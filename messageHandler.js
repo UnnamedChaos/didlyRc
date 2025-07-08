@@ -1,19 +1,20 @@
 import {checkStatus, controllers, disconnectEsp, findEspInConfig, registerController, registerESP} from "./clientController.js";
 
 export const espMessageTypes = {
-    DRIVE: "DRIVE",
-    TURN: "TURN",
+    M1: "M1",
+    M2: "M2",
+    M3: "M3",
+    S1: "S1",
+    S2: "S2",
     LIGHT_FRONT: "LIGHT_FRONT",
     LIGHT_BLINKER: "LIGHT_BLINKER",
     SIGN_ON: "SIGN_ON",
-    TILT: "TILT",
-    WINCH: "WINCH",
 };
 
 export const skidMessageTypes = {
-    M1: "S1",
+    M1: "M1",
     M2: "M2",
-    M3: "S3",
+    M3: "M3",
     S1: "S1",
     S2: "S2",
     LIGHT_FRONT: "LIGHT_FRONT",
@@ -45,7 +46,7 @@ function proxyMessage(req, parsed) {
         const controller = controllers.find(value => value.ip === req.socket.remoteAddress);
         if(controller && controller.client){
 
-            if(parsed.type === espMessageTypes.TURN){
+            if(parsed.type === espMessageTypes.S1){
                 parsed.value =  parseFloat(parsed.value) + parseFloat(controller.client.esp.trim);
                 if(parsed.value > 1 - controller.client.esp.limit.right){
                     parsed.value = 1 - controller.client.esp.limit.right;
@@ -53,25 +54,27 @@ function proxyMessage(req, parsed) {
                     parsed.value = -1 + controller.client.esp.limit.left;
                 }
             }
-            if(parsed.type === espMessageTypes.WINCH){
+            if(parsed.type === espMessageTypes.M3){
                 if(Math.abs(parsed.value) <= controller.client.esp.winchDeadzone){
                     parsed.value =  0;
                 } else {
                     parsed.value = Math.sign(parsed.value) * Math.abs(parsed.value).map(controller.client.esp.winchDeadzone,1,0,1);
                 }
+                if(parsed.value !== 0){
+                    controller.client.lastForkDirection = parsed.value;
+                }
             }
-            if(parsed.type === espMessageTypes.DRIVE){
+            if(parsed.type === espMessageTypes.M1 || parsed.type === skidMessageTypes.M1 || parsed.type === skidMessageTypes.M3 ){
                 if(controller.client.esp.inverse){
                     parsed.value = -parsed.value;
                 }
-
             }
             if(parsed.type === skidMessageTypes.S1){
                 if(parsed.value < controller.client.esp.limit.bucket){
                     parsed.value = controller.client.esp.limit.bucket;
                 }
             }
-            if(parsed.type === skidMessageTypes.M2.toString()){
+            if(controller.client.type === "SKID" && parsed.type === skidMessageTypes.M2.toString()){
                 const s1Value = parsed.sliders.filter(value => value.type === skidMessageTypes.S1)[0].value;
                 if(s1Value ){
                     if(parsed.value > 0){
@@ -86,6 +89,7 @@ function proxyMessage(req, parsed) {
                 }
             }
             if(!controller.lastMsg || Math.abs(controller.lastMsg.value - parsed.value) > 0.05 || controller.canSendMsg){
+                //console.log("Sending: " + JSON.stringify(parsed));
                 controller.client.ws.send(JSON.stringify(parsed));
                 controller.lastMsg = parsed;
                 controller.canSendMsg = false;
@@ -124,6 +128,8 @@ export function resetEsp(esp ,ws){
             const msg2 = createMessage("S2", .5);
             ws.send(JSON.stringify(msg2));
         }, 1000);
+    } else if(esp.type === "FORK"){
+
     }
     ws.send(JSON.stringify({
         "type": serverMessageTypes.REPORT.toString()

@@ -20,18 +20,28 @@
         <button id="fullscreen-btn" class="btn small">⛶</button>
     </div>
 </div>
-
-<div class="buttons tilt">
-    <button id="tilt-down" class="btn">TILT -</button>
-    <button id="tilt-up" class="btn">TILT +</button>
-</div>
-<div class="controller">
-    <div id="left-stick" class="stick-container">
-        <div class="stick"></div>
-        <div class="type blend-overlay"><img src="/images/allDir.png" alt=""></div>
+<div id="controls" class="controller">
+    <div id="fork-controls" class="skid-controls">
+        <div class="slider-container">
+            <div class="slider-img">
+                <img src="/images/tilt.png" alt="">
+            </div>
+            <div class="v-slider" id="forkTiltSlider">
+                <div class="v-slider-fill" id="forkTiltSliderFill"></div>
+                <div class="v-slider-thumb" id="forkTiltSliderThumb"></div>
+            </div>
+        </div>
+        <div class="slider-container">
+            <div class="slider-img">
+                <img src="/images/gabel.png" alt="">
+            </div>
+            <div class="v-slider" id="forkSlider">
+                <div class="v-slider-fill" id="forkSliderFill"></div>
+                <div class="v-slider-thumb" id="forkSliderThumb"></div>
+            </div>
+        </div>
     </div>
     <div id="skid-controls" class="skid-controls" style="display: none;">
-
         <div class="slider-container">
             <div class="slider-img"><img src="/images/arm.png" alt=""></div>
             <div class="v-slider" id="vSlider">
@@ -55,7 +65,14 @@
                 <div class="v-slider-thumb" id="bSliderThumb"></div>
             </div>
         </div>
-
+    </div>
+    <div class="button-container">
+        <button id="frontLightBtn" class="btn">Lights</button>
+        <button id="blinkerBtn" class="btn">Blinker</button>
+    </div>
+    <div id="left-stick" class="stick-container">
+        <div class="stick"></div>
+        <div class="type blend-overlay"><img src="/images/allDir.png" alt=""></div>
     </div>
     <div id="right-stick" class="stick-container">
         <div class="type blend-overlay"><img src="/images/allDir.png" alt=""></div>
@@ -64,8 +81,6 @@
 </div>
 
 <div class="buttons bottom-bar">
-    <button id="blinkerBtn" class="btn">Blinker</button>
-    <button id="frontLightBtn" class="btn">Lights</button>
 </div>
 
 <script type="module"  src="script.js"></script>

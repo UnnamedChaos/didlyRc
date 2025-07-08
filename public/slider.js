@@ -23,6 +23,20 @@ const sliders = [
         reset: false,
         get interval() { return this._interval; },
         set interval(val) { this._interval = val; },
+    },
+    {
+        id: "forkTiltSlider",
+        type: "S2",
+        reset: false,
+        get interval() { return this._interval; },
+        set interval(val) { this._interval = val; },
+    },
+    {
+        id: "forkSlider",
+        type: "M3",
+        reset: true,
+        get interval() { return this._interval; },
+        set interval(val) { this._interval = val; },
     }
 ];
 

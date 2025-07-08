@@ -35,14 +35,16 @@
 },{
   "id": "4",
   "name": "Grün",
-  "winchDeadzone": 0.3,
+  "winchDeadzone": 0.0,
   "trim": "0",
   "background": "green",
   "limit": {
     "left": "0.08",
     "right": "0.5"
   },
-  "type":"FORK"
+  "type":"FORK",
+  "inverse": false,
+  "winchMotor": "M3"
 },{
   "id": "5",
   "name": "Gelb",
@@ -55,5 +57,5 @@
   },
   "armMotor": "M2",
   "type":"SKID",
-  "inverse": false
+  "inverse": true
 }]
