@@ -1,17 +1,9 @@
-import {checkStatus, controllers, disconnectEsp, findEspInConfig, registerController, registerESP} from "./clientController.js";
+import {checkStatus, controllers, disconnectEsp, registerController, registerESP} from "./clientController.js";
+import {temperData as temperForkliftData} from "./forklift.js";
+import {reset as resetSkid, temperData as temperSkidData} from "./skid.js";
+import {createReportMessage, createUpdateClientMessage} from "./messageFactory.js";
 
 export const espMessageTypes = {
-    M1: "M1",
-    M2: "M2",
-    M3: "M3",
-    S1: "S1",
-    S2: "S2",
-    LIGHT_FRONT: "LIGHT_FRONT",
-    LIGHT_BLINKER: "LIGHT_BLINKER",
-    SIGN_ON: "SIGN_ON",
-};
-
-export const skidMessageTypes = {
     M1: "M1",
     M2: "M2",
     M3: "M3",
@@ -35,63 +27,27 @@ export const serverMessageTypes = {
 
 export function updateControllers() {
     controllers.forEach(controller => {
-        controller.ws.send(JSON.stringify({
-            "type": serverMessageTypes.UPDATE_CLIENTS.toString()
-        }));
+        controller.ws.send(createUpdateClientMessage());
     })
 }
 
-function proxyMessage(req, parsed) {
-    if ((espMessageTypes[parsed.type] || skidMessageTypes[parsed.type])) {
+function temperProxyData(controller, parsed, req) {
+    console.log(controller.client);
+    if (controller.client.esp.type === "FORK") {
+        return temperForkliftData(controller, parsed);
+    } else if (controller.client.esp.type === "SKID") {
+        return temperSkidData(controller, parsed, req);
+    }
+}
+export function proxyMessage(req, parsed) {
+    if (espMessageTypes[parsed.type]) {
         const controller = controllers.find(value => value.ip === req.socket.remoteAddress);
         if(controller && controller.client){
-
-            if(parsed.type === espMessageTypes.S1){
-                parsed.value =  parseFloat(parsed.value) + parseFloat(controller.client.esp.trim);
-                if(parsed.value > 1 - controller.client.esp.limit.right){
-                    parsed.value = 1 - controller.client.esp.limit.right;
-                } else if (parsed.value < -1 + controller.client.esp.limit.left){
-                    parsed.value = -1 + controller.client.esp.limit.left;
-                }
-            }
-            if(parsed.type === espMessageTypes.M3){
-                if(Math.abs(parsed.value) <= controller.client.esp.winchDeadzone){
-                    parsed.value =  0;
-                } else {
-                    parsed.value = Math.sign(parsed.value) * Math.abs(parsed.value).map(controller.client.esp.winchDeadzone,1,0,1);
-                }
-                if(parsed.value !== 0){
-                    controller.client.lastForkDirection = parsed.value;
-                }
-            }
-            if(parsed.type === espMessageTypes.M1 || parsed.type === skidMessageTypes.M1 || parsed.type === skidMessageTypes.M3 ){
-                if(controller.client.esp.inverse){
-                    parsed.value = -parsed.value;
-                }
-            }
-            if(parsed.type === skidMessageTypes.S1){
-                if(parsed.value < controller.client.esp.limit.bucket){
-                    parsed.value = controller.client.esp.limit.bucket;
-                }
-            }
-            if(controller.client.type === "SKID" && parsed.type === skidMessageTypes.M2.toString()){
-                const s1Value = parsed.sliders.filter(value => value.type === skidMessageTypes.S1)[0].value;
-                if(s1Value ){
-                    if(parsed.value > 0){
-                        const msg = createMessage("S1", s1Value + parsed.value * 0.0025);
-                        proxyMessage(req, msg)
-                        controller.ws.send(JSON.stringify(msg))
-                    } else{
-                        const msg = createMessage("S1", s1Value + parsed.value * 0.0025);
-                        proxyMessage(req, msg)
-                        controller.ws.send(JSON.stringify(msg))
-                    }
-                }
-            }
-            if(!controller.lastMsg || Math.abs(controller.lastMsg.value - parsed.value) > 0.05 || controller.canSendMsg){
-                //console.log("Sending: " + JSON.stringify(parsed));
-                controller.client.ws.send(JSON.stringify(parsed));
-                controller.lastMsg = parsed;
+            let data = temperProxyData(controller, parsed, req);
+            if(!controller.lastMsg || Math.abs(controller.lastMsg.value - data.value) > 0.05 || controller.canSendMsg){
+                //console.log("Sending: " + JSON.stringify(data));
+                controller.client.ws.send(JSON.stringify(data));
+                controller.lastMsg = data;
                 controller.canSendMsg = false;
                 setInterval(() => {
                     controller.canSendMsg = true;
@@ -115,25 +71,15 @@ export function parseMessage(req, ws, parsed) {
     }
 }
 
-function createMessage(type, value) {
-    return  {type,value}
-}
 
 export function resetEsp(esp ,ws){
     console.log("Resetting esp.");
     if(esp.type === "SKID"){
-        const msg = createMessage("S1", 0.95);
-        ws.send(JSON.stringify(msg));
-        setTimeout(function(){
-            const msg2 = createMessage("S2", .5);
-            ws.send(JSON.stringify(msg2));
-        }, 1000);
+        resetSkid(ws);
     } else if(esp.type === "FORK"){
 
     }
-    ws.send(JSON.stringify({
-        "type": serverMessageTypes.REPORT.toString()
-    }));
+    ws.send(createReportMessage());
 }
 
 Number.prototype.map = function (in_min, in_max, out_min, out_max) {

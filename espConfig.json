@@ -1,7 +1,6 @@
 [{
   "id": "1",
   "name": "Rot",
-  "winchDeadzone": 0.3,
   "trim": "0",
   "background": "red",
   "limit": {
@@ -12,7 +11,6 @@
 },{
   "id": "2",
   "name": "Orange",
-  "winchDeadzone": 0.3,
   "trim": "0",
   "background": "orange",
   "limit": {
@@ -23,7 +21,6 @@
 },{
   "id": "3",
   "name": "Blau",
-  "winchDeadzone": 0.3,
   "trim": "0",
   "background": "blue",
   "limit": {
@@ -35,7 +32,6 @@
 },{
   "id": "4",
   "name": "Grün",
-  "winchDeadzone": 0.0,
   "trim": "0",
   "background": "green",
   "limit": {
@@ -48,7 +44,6 @@
 },{
   "id": "5",
   "name": "Gelb",
-  "winchDeadzone": 0.1,
   "trim": "0",
   "background": "yellow",
   "limit": {
