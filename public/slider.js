@@ -16,6 +16,13 @@ const sliders = [
         reset: false,
         get interval() { return this._interval; },
         set interval(val) { this._interval = val; },
+    },
+    {
+        id: "bSlider",
+        type: "S2",
+        reset: false,
+        get interval() { return this._interval; },
+        set interval(val) { this._interval = val; },
     }
 ];
 

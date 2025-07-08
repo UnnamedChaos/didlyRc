@@ -1,4 +1,4 @@
-import {disconnectBtn, leftStick, reverse, skidControlls} from "./btn.js";
+import {disconnectBtn, leftStick, reverse, skidControlls, tiltDownBtn, tiltUpBtn} from "./btn.js";
 import {setSliderValue} from "./slider.js";
 
 let ws;
@@ -52,10 +52,14 @@ function connectWebSocket() {
             document.body.classList.add(data.background);
             if(espType === "SKID"){
                 leftStick.style.setProperty("display", "none");
+                tiltUpBtn.style.setProperty("display", "none");
+                tiltDownBtn.style.setProperty("display", "none");
                 skidControlls.style.removeProperty("display", "none");
             } else {
                 skidControlls.style.setProperty("display", "none");
                 leftStick.style.removeProperty("display", "none");
+                tiltUpBtn.style.removeProperty("display", "none");
+                tiltDownBtn.style.removeProperty("display", "none");
             }
             updateClients();
         } else if (data.type === "UPDATE_CLIENTS") {

@@ -91,7 +91,7 @@ function proxyMessage(req, parsed) {
                 controller.canSendMsg = false;
                 setInterval(() => {
                     controller.canSendMsg = true;
-                }, 300);
+                }, 30);
             }
         }
     }
@@ -118,8 +118,12 @@ function createMessage(type, value) {
 export function resetEsp(esp ,ws){
     console.log("Resetting esp.");
     if(esp.type === "SKID"){
-        const msg = createMessage("S1", 1.0);
+        const msg = createMessage("S1", 0.95);
         ws.send(JSON.stringify(msg));
+        setTimeout(function(){
+            const msg2 = createMessage("S2", .5);
+            ws.send(JSON.stringify(msg2));
+        }, 1000);
     }
     ws.send(JSON.stringify({
         "type": serverMessageTypes.REPORT.toString()
