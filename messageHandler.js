@@ -32,7 +32,6 @@ export function updateControllers() {
 }
 
 function temperProxyData(controller, parsed, req) {
-    console.log(controller.client);
     if (controller.client.esp.type === "FORK") {
         return temperForkliftData(controller, parsed);
     } else if (controller.client.esp.type === "SKID") {

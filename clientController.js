@@ -186,7 +186,9 @@ export function getEspClientsJson(){
     return espClients.map(client => ({
         id: client.id,
         name: client.name,
-        available: !controllers.find(v => v.client && v.client.id === client.id)
+        available: !controllers.find(v => v.client && v.client.id === client.id),
+        css: client.esp.background,
+        type: client.esp.type
     }));
 }
 

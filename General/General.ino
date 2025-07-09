@@ -6,7 +6,7 @@
 
 // WiFi credentials
 const char* ssids[] = {"RC-Hotspot", "Vodafone-4FDC"};
-const char* passwords[] = {"69696969", "88888888"};
+const char* passwords[] = {"69696969", "31323334353637383961626364"};
 const int wifiCount = sizeof(ssids) / sizeof(ssids[0]);
 
 // WebSocket server info (IP of Linux server hosting UI + WebSocket)

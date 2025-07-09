@@ -1,4 +1,4 @@
-import {disconnectBtn, forkControls, leftStick, reverse, skidControlls} from "./btn.js";
+import {disconnectBtn, forkControls, leftStick, reverse, skidControls} from "./btn.js";
 import {setSliderValue} from "./slider.js";
 
 let ws;
@@ -7,6 +7,7 @@ const maxReconnectInterval = 10000; // Cap at 10 seconds
 
 export let clientId = -1;
 export let espType;
+let clientSelector = document.getElementById("clientSelector");
 
 function setDefaultDesign() {
     disconnectBtn.style.setProperty("display", "none");
@@ -14,6 +15,7 @@ function setDefaultDesign() {
     document.body.classList.add("black");
     document.getElementById("controls").style.setProperty("display", "none");
 }
+
 
 function connectWebSocket() {
     ws = new WebSocket(`ws://${location.hostname}:3000/ws`);
@@ -52,14 +54,15 @@ function connectWebSocket() {
             document.body.classList.remove("black", "blue", "orange", "red", "green", "yellow");
             document.body.classList.add(data.background);
             document.getElementById("controls").style.setProperty("display", "flex");
+            clientSelector.style.setProperty("display", "none");
             if(espType === "SKID"){
-                leftStick.style.setProperty("display", "none");
-                skidControlls.style.removeProperty("display", "none");
-                forkControls.style.setProperty("display", "none");
+                hideElement(leftStick);
+                hideElement(forkControls);
+                showElement(skidControls);
             } else {
-                skidControlls.style.setProperty("display", "none");
-                leftStick.style.removeProperty("display", "none");
-                forkControls.style.removeProperty("display", "none");
+                hideElement(skidControls);
+                showElement(leftStick);
+                showElement(forkControls);
             }
             updateClients();
         } else if (data.type === "UPDATE_CLIENTS") {
@@ -69,6 +72,7 @@ function connectWebSocket() {
         }  else if (data.type === "DISCONNECT_SUCCESSFUL") {
             console.log("Disconnect of controller successful");
             clientId = undefined;
+            showElement(clientSelector);
             setDefaultDesign();
             updateClients();
         }
@@ -87,33 +91,60 @@ export function send(msg) {
     }
 }
 
+function createSelectVehicleDropdownButton(data) {
+    const container = document.getElementById('esp-dropdown');
+    container.innerHTML = '';
+    data.forEach(client => {
+        const btn = document.createElement('button');
+        btn.textContent = client.name;
+        btn.id = "espClient_" + client.id;
+        btn.onclick = () => {
+            send(JSON.stringify({type: "REGISTER_CONTROLLER", value: client.id}));
+        };
+        if (!client.available && clientId !== client.id) {
+            btn.style.background = 'red';
+        }
+        if (clientId === client.id) {
+            btn.style.background = 'green';
+        }
+        container.appendChild(btn);
+    });
+    if(data.length === 0){
+        const btn = document.createElement('button');
+        btn.textContent = "No clients";
+        container.appendChild(btn);
+    }
+}
+
 // ESP dropdown
 function updateClients() {
     fetch('/api/espclients')
         .then(response => response.json())
         .then(data => {
-            const container = document.getElementById('esp-dropdown');
-            container.innerHTML = '';
+            createSelectVehicleDropdownButton(data);
+            while(clientSelector.hasChildNodes()){ clientSelector.removeChild(clientSelector.firstChild)}
             data.forEach(client => {
-                const btn = document.createElement('button');
-                btn.textContent = client.name;
-                btn.id = "espClient_" + client.id;
-                btn.onclick = () => {
-                    send(JSON.stringify({ type: "REGISTER_CONTROLLER", value: client.id }));
+                let card = document.createElement("div");
+                card.classList.add("entry");
+                card.innerHTML = "<div class=\"name\"></div>" +
+                                 "<div class=\"espType\"></div>";
+                card.classList.add(client.css);
+                card.querySelector('.name').innerHTML = client.name;
+                card.querySelector('.espType').innerHTML = client.type;
+                card.onclick = () => {
+                    send(JSON.stringify({type: "REGISTER_CONTROLLER", value: client.id}));
                 };
-                if(!client.available && clientId !== client.id){
-                    btn.style.background = 'red';
+                if (!client.available && clientId !== client.id) {
+                    card.innerHTML = card.innerHTML + " <div class='statusIndicator red'></div>"
+
                 }
-                if(clientId === client.id){
-                    btn.style.background = 'green';
+                if (clientId === client.id) {
+                    card.innerHTML = card.innerHTML + " <div class='statusIndicator green'></div>"
+
                 }
-                container.appendChild(btn);
-            });
-            if(data.length === 0){
-                const btn = document.createElement('button');
-                btn.textContent = "No clients";
-                container.appendChild(btn);
-            }
+                clientSelector.appendChild(card);
+
+            })
         });
 }
 
@@ -332,6 +363,26 @@ document.addEventListener('fullscreenchange', () => {
         document.body.classList.remove('fullscreen');
     }
 });
+
+
+function hideElement(element) {
+    element.style.setProperty("display", "none");
+}
+
+function showElement(element) {
+    element.style.removeProperty("display");
+}
+
+async function loadCardComponent(name) {
+    const response = await fetch('./components/'+name +'.html');
+    const htmlText = await response.text();
+
+    // Convert the HTML string into actual elements
+    const template = document.createElement('template');
+    template.innerHTML = htmlText.trim(); // Trim to remove whitespace
+
+    return template.content.firstElementChild;
+}
 
 connectWebSocket();
 updateClients();

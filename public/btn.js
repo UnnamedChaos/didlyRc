@@ -5,7 +5,7 @@ export const reverseBtn = document.getElementById("reverse-btn");
 export const frontLightBtn = document.getElementById("frontLightBtn");
 export const blinkerBtn = document.getElementById("blinkerBtn");
 export const leftStick = document.getElementById("left-stick");
-export const skidControlls = document.getElementById("skid-controls");
+export const skidControls = document.getElementById("skid-controls");
 export const forkControls = document.getElementById("fork-controls");
 
 export let reverse = false;
