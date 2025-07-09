@@ -43,9 +43,21 @@
   "winchMotor": "M3"
 },{
   "id": "5",
-  "name": "Gelb",
+  "name": "Gelber Skiddy",
   "trim": "0",
   "background": "yellow",
+  "limit": {
+    "left": "0",
+    "bucket": "-0.2"
+  },
+  "armMotor": "M2",
+  "type":"SKID",
+  "inverse": true
+},{
+  "id": "6",
+  "name": "Oranger Skiddy",
+  "trim": "0",
+  "background": "orange",
   "limit": {
     "left": "0",
     "bucket": "-0.2"
