@@ -1,4 +1,4 @@
-import espConfig from "./espConfig.json"  with { type: 'json' };
+import espConfig from "./espConfigLokal.json"  with { type: 'json' };
 import {resetEsp, serverMessageTypes, updateControllers} from "./messageHandler.js";
 
 
