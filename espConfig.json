@@ -7,7 +7,12 @@
     "left": "0.08",
     "right": "0.5"
   },
-  "type":"FORK"
+  "type":"FORK",
+  "inverse": true,
+  "motors": {
+    "drive": "M1",
+    "lift" : "M3"
+  }
 },{
   "id": "5",
   "name": "Gelber Skiddy",
@@ -17,7 +22,9 @@
     "left": "0",
     "bucket": "-0.2"
   },
-  "armMotor": "M2",
+  "motors" : {
+    "arm": "M2"
+  },
   "type":"SKID",
   "inverse": true
 }]

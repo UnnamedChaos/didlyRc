@@ -134,7 +134,7 @@ export function checkStatus(ws, msg) {
         if(msg.stops.upper){
             console.log("Found blockage of upper motor.");
             const msg = {
-                type: esp.esp.armMotor,
+                type: esp.esp.motors.arm,
                 value: 0.3,
                 force: true
             }
@@ -144,7 +144,7 @@ export function checkStatus(ws, msg) {
         if(msg.stops.lower){
             console.log("Found blockage of lower motor.");
             const msg = {
-                type: esp.esp.armMotor,
+                type: esp.esp.motors.arm,
                 value: -0.5,
                 force: true
             }
@@ -156,14 +156,14 @@ export function checkStatus(ws, msg) {
             let dir = esp.lastForkDirection ? Math.sign(esp.lastForkDirection) : undefined;
             if(dir){
                 const msg = {
-                    type: esp.esp.winchMotor,
+                    type: esp.esp.motors.lift,
                     value: -dir * 0.3,
                     force: true
                 }
                 ws.send(JSON.stringify(msg));
             } else {
                 const msg = {
-                    type: esp.esp.winchMotor,
+                    type: esp.esp.motors.lift,
                     value: -0.3,
                     force: true
                 }
