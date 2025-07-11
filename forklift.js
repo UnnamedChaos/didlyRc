@@ -13,13 +13,12 @@ export function temperData(controller, parsed){
         }
     }
 
-    if (parsed.type === espMessageTypes.M3) {
+    if (parsed.type === espMessageTypes[controller.client.esp.motors.lift]) {
         if (parsed.value !== 0) {
             controller.client.lastForkDirection = parsed.value;
         }
     }
-
-    if (parsed.type === espMessageTypes.M1) {
+    if (parsed.type === espMessageTypes[controller.client.esp.motors.drive]) {
         if (controller.client.esp.inverse) {
             parsed.value = -parsed.value;
         }

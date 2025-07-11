@@ -1,6 +1,6 @@
 import { send } from "./script.js";
 
-const sliders = [
+export const sliders = [
     {
         id: "vSlider",
         type: "M2",

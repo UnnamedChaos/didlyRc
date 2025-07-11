@@ -1,5 +1,6 @@
 import {disconnectBtn, forkControls, leftStick, reverse, skidControls} from "./btn.js";
-import {setSliderValue} from "./slider.js";
+import {setSliderValue, sliders} from "./slider.js";
+export let motors = {"drive": "M1", "lift": "M3"};
 
 let ws;
 let reconnectInterval = 1000; // Start with 1 second
@@ -55,6 +56,7 @@ function connectWebSocket() {
             document.body.classList.add(data.background);
             document.getElementById("controls").style.setProperty("display", "flex");
             clientSelector.style.setProperty("display", "none");
+            motors = data.motors;
             if(espType === "SKID"){
                 hideElement(leftStick);
                 hideElement(forkControls);
@@ -63,6 +65,7 @@ function connectWebSocket() {
                 hideElement(skidControls);
                 showElement(leftStick);
                 showElement(forkControls);
+                sliders[4].type = data.motors.lift;
             }
             updateClients();
         } else if (data.type === "UPDATE_CLIENTS") {
@@ -276,7 +279,7 @@ setupStick("left-stick", pos => {
     let y = parseFloat(pos.y);
     if(espType === "FORK"){
         if(reverse){
-            send(JSON.stringify({ type: "M1", value: y }));
+            send(JSON.stringify({ type: motors.drive, value: y }));
         }
         else {
             send(JSON.stringify({type: "S1", value: x}));
@@ -294,7 +297,7 @@ setupStick("right-stick", pos => {
         if(reverse){
             send(JSON.stringify({ type: "S1", value: x }));
         } else{
-            send(JSON.stringify({ type: "M1", value: y }));
+            send(JSON.stringify({ type: motors.drive, value: y }));
         }
     } else if(espType === "SKID"){
         let forward = y; // Invert if necessary, depending on your stick Y orientation

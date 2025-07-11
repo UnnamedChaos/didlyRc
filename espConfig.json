@@ -9,56 +9,10 @@
   },
   "type":"FORK"
 },{
-  "id": "2",
-  "name": "Orange",
-  "trim": "0",
-  "background": "orange",
-  "limit": {
-    "left": "0.08",
-    "right": "0.5"
-  },
-  "type":"FORK"
-},{
-  "id": "3",
-  "name": "Blau",
-  "trim": "0",
-  "background": "blue",
-  "limit": {
-    "left": "0.08",
-    "right": "0.5"
-  },
-  "inverse": false,
-  "inverseSteering": false,
-  "type":"FORK"
-},{
-  "id": "4",
-  "name": "Grün",
-  "trim": "0",
-  "background": "green",
-  "limit": {
-    "left": "0.08",
-    "right": "0.5"
-  },
-  "type":"FORK",
-  "inverse": false,
-  "winchMotor": "M3"
-},{
   "id": "5",
   "name": "Gelber Skiddy",
   "trim": "0",
   "background": "yellow",
-  "limit": {
-    "left": "0",
-    "bucket": "-0.2"
-  },
-  "armMotor": "M2",
-  "type":"SKID",
-  "inverse": true
-},{
-  "id": "6",
-  "name": "Oranger Skiddy",
-  "trim": "0",
-  "background": "orange",
   "limit": {
     "left": "0",
     "bucket": "-0.2"

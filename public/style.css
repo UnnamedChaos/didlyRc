@@ -138,7 +138,8 @@ h1 {
 
 .button-container .btn {
     margin-bottom: 15px;
-    margin-right: 20px;
+    margin-right: 5px;
+    margin-left: 5px;
 }
 
 .btn.small {

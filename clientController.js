@@ -40,7 +40,8 @@ export function registerClientToController(ws, client) {
         "value": client.id.toString(),
         "background": esp.background,
         "espType": esp.type,
-        "limit" : esp.limit
+        "limit" : esp.limit,
+        "motors" : esp.motors,
     }));
     updateControllers();
 }
