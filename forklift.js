@@ -8,6 +8,9 @@ export function temperData(controller, parsed){
         } else if (parsed.value < -1 + controller.client.esp.limit.left) {
             parsed.value = -1 + controller.client.esp.limit.left;
         }
+        if(controller.client.esp.inverseSteering){
+            parsed.value = -parsed.value;
+        }
     }
 
     if (parsed.type === espMessageTypes.M3) {

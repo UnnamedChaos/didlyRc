@@ -28,6 +28,7 @@
     "right": "0.5"
   },
   "inverse": false,
+  "inverseSteering": false,
   "type":"FORK"
 },{
   "id": "4",
