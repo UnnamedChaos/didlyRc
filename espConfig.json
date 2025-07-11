@@ -8,7 +8,8 @@
     "right": "0.5"
   },
   "type":"FORK",
-  "inverse": true,
+  "inverse": false,
+  "inverseSteering": false,
   "motors": {
     "drive": "M1",
     "lift" : "M3"
