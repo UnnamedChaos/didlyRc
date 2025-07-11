@@ -4,6 +4,7 @@ export const disconnectBtn = document.getElementById("disconnect-btn");
 export const reverseBtn = document.getElementById("reverse-btn");
 export const frontLightBtn = document.getElementById("frontLightBtn");
 export const blinkerBtn = document.getElementById("blinkerBtn");
+export const honkBtn = document.getElementById("honkBtn");
 export const leftStick = document.getElementById("left-stick");
 export const skidControls = document.getElementById("skid-controls");
 export const forkControls = document.getElementById("fork-controls");
@@ -21,6 +22,10 @@ frontLightBtn.addEventListener('click', () => {
 
 blinkerBtn.addEventListener('click', () => {
     send(JSON.stringify({ type: "LIGHT_BLINKER", value: null }));
+});
+
+honkBtn.addEventListener('click', () => {
+    send(JSON.stringify({ type: "HONK", value: null }));
 });
 
 reverseBtn.addEventListener('click', () => {

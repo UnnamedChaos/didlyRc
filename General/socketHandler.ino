@@ -3,7 +3,7 @@
 #include <ArduinoJson.h>
 
 //CHANGEME
-const int clientId = 6;
+const int clientId = 4;
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
   switch(type) {
@@ -54,7 +54,11 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
       } else if (strcmp(type, "REPORT") == 0) {
           DEBUG_PRINTLN("Executing report command.");
           sendReport();
-      } else {
+      } else if (strcmp(type, "HONK") == 0) {
+          DEBUG_PRINTLN("Executing honk command.");
+          honk();
+      }
+      else {
           DEBUG_PRINTLN("Unsupported command type.");
       }
     }

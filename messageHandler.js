@@ -12,6 +12,7 @@ export const espMessageTypes = {
     LIGHT_FRONT: "LIGHT_FRONT",
     LIGHT_BLINKER: "LIGHT_BLINKER",
     SIGN_ON: "SIGN_ON",
+    HONK: "HONK"
 };
 
 export const serverMessageTypes = {

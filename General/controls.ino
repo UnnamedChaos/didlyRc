@@ -8,6 +8,8 @@
 #define FRONT_LED_PIN 4
 #define BLINKER_LED_PIN 2
 
+#define BUZZER_PIN 21
+
 #define ENGINE_A_1B 32
 #define ENGINE_A_1A 33
 #define ENGINE_B_1A 16
@@ -42,6 +44,8 @@ void setupControls(){
     
     pinMode(FRONT_LED_PIN, OUTPUT);
     pinMode(BLINKER_LED_PIN, OUTPUT);
+    
+    pinMode(BUZZER_PIN, OUTPUT);
 
     pinMode(STOP, INPUT_PULLUP);
     pinMode(STOP_L, INPUT_PULLUP);
@@ -100,6 +104,14 @@ void changePin(bool &status, bool desired, int pin){
     status = desired;
 }
 
+void honk(){
+  for (int i = 0; i < 55; i++) { 
+    digitalWrite(BUZZER_PIN, HIGH); 
+    delay(2);                   
+    digitalWrite(BUZZER_PIN, LOW); 
+    delay(2);                     
+  }
+}
 
 bool reportSent = false;
 unsigned long lastReportSend = 4*MIN_UPDATE_TIME;
