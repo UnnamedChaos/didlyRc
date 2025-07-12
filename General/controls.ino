@@ -34,6 +34,13 @@ int lastBlink = BLINKER_TIME;
 unsigned long previousMillis = millis();
 
 
+
+void IRAM_ATTR handleLow() {
+    controlMotor(0, ENGINE_A_1A, ENGINE_A_1B, true);
+    controlMotor(0, ENGINE_B_1A, ENGINE_B_1B, true);
+    controlMotor(0, ENGINE_C_1A, ENGINE_C_1B, true);
+}
+
 void setupControls(){
     pinMode(ENGINE_B_1A, OUTPUT);
     pinMode(ENGINE_B_1B, OUTPUT);
@@ -55,8 +62,9 @@ void setupControls(){
 
     s2.setPeriodHertz(50);
     s2.attach(S2_PIN, 500, 2500);
-
-
+    
+    attachInterrupt(digitalPinToInterrupt(STOP), handleLow, FALLING);
+    attachInterrupt(digitalPinToInterrupt(STOP_L), handleLow, FALLING);
 }
 
 unsigned long lastDriveUpdate = MIN_UPDATE_TIME;
@@ -128,12 +136,14 @@ void updateStops(unsigned long millis){
     sendReport();
     reportSent = true;
     lastReportSend = 4* MIN_UPDATE_TIME;
+    controlMotor(0, ENGINE_A_1A, ENGINE_A_1B, true);
+    controlMotor(0, ENGINE_B_1A, ENGINE_B_1B, true);
+    controlMotor(0, ENGINE_C_1A, ENGINE_C_1B, true);
   }
   else{
     reportSent = false;
     lastReportSend = lastReportSend - millis;
   }
-  
 }
 
 void updateLight(unsigned long millis){

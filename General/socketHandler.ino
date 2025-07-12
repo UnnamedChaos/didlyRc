@@ -3,7 +3,7 @@
 #include <ArduinoJson.h>
 
 //CHANGEME
-const int clientId = 1;
+const int clientId = 3;
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
   switch(type) {
