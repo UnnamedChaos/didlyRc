@@ -151,34 +151,16 @@ export function checkStatus(ws, msg) {
             ws.send(JSON.stringify(msg));
         }
     } else if(esp && esp.esp.type === "FORK" && isAnyStopTriggered(msg)){
-        if(!esp.recentylUnblocked && (!esp.recentUnblockTries || esp.recentUnblockTries < 3)){
+        if(!esp.recentylUnblocked){
             console.log("Fork has blockage.");
             let dir = esp.lastForkDirection ? Math.sign(esp.lastForkDirection) : undefined;
             if(dir){
-                const msg = {
-                    type: esp.esp.motors.lift,
-                    value: -dir * 0.3,
-                    force: true
-                }
-                ws.send(JSON.stringify(msg));
             } else {
-                const msg = {
-                    type: esp.esp.motors.lift,
-                    value: -0.3,
-                    force: true
-                }
-                ws.send(JSON.stringify(msg));
-                esp.lastForkDirection = msg.value;
             }
-            esp.recentUnblockTries = esp.recentUnblockTries ? esp.recentUnblockTries + 1 : 1;
             esp.recentylUnblocked = true;
             setInterval(() => {
                 esp.recentylUnblocked = false;
             }, 1000)
-            setInterval(() => {
-                esp.recentylUnblocked = false;
-                esp.recentUnblockTries -= 1;
-            }, 3000)
         }
     }
 }
