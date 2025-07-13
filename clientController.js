@@ -138,22 +138,10 @@ export function checkStatus(ws, msg) {
         console.log("Skid has blockage. ");
         if(msg.stops.upper){
             console.log("Found blockage of upper motor.");
-            const msg = {
-                type: esp.esp.motors.arm,
-                value: 0.3,
-                force: true
-            }
-            console.log(JSON.stringify(msg));
-            ws.send(JSON.stringify(msg));
         }
         if(msg.stops.lower){
             console.log("Found blockage of lower motor.");
-            const msg = {
-                type: esp.esp.motors.arm,
-                value: -0.5,
-                force: true
-            }
-            ws.send(JSON.stringify(msg));
+
         }
     } else if(esp && esp.esp.type === "FORK"){
             const controller = getControllerByEsp(esp);
@@ -177,9 +165,17 @@ export function checkStatus(ws, msg) {
             esp.blocked = false;
             esp.blockSended = false;
             if(controller){
+                let lastSpeed;
+                if(controller.client.esp.motors.lift === "M3"){
+                    lastSpeed = controller.client.lastSpeedM3
+                } else if(controller.client.esp.motors.lift === "M2"){
+                    lastSpeed = controller.client.lastSpeedM2
+                } else if(controller.client.esp.motors.lift === "M1") {
+                    lastSpeed = controller.client.lastSpeedM1
+                }
                 const msgF =createMessage(serverMessageTypes.BLOCKED, false);
-                if(msg.lastSpeedM3 && msg.lastSpeedM3 === 0){
-                    msgF.dir = msg.lastSpeedM3;
+                if(lastSpeed && lastSpeed === 0){
+                    msgF.dir = lastSpeed;
                 } else {
                     msgF.dir = esp.lastForkDirection;
                 }

@@ -24,7 +24,15 @@ export function temperData(controller, parsed){
             controller.client.lastForkDirection = data.value;
         }
         if(controller.client.blocked && !controller.client.blockSended){
-            if(Math.abs(data.value) > 0.8 && Math.sign(controller.client.lastSpeedM3) * Math.sign(data.value) < 0){
+            let lastSpeed;
+            if(controller.client.esp.motors.lift === "M3"){
+                lastSpeed = controller.client.lastSpeedM3
+            } else if(controller.client.esp.motors.lift === "M2"){
+                lastSpeed = controller.client.lastSpeedM2
+            } else if(controller.client.esp.motors.lift === "M1") {
+                lastSpeed = controller.client.lastSpeedM1
+            }
+            if(Math.abs(data.value) > 0.8 && Math.sign(lastSpeed) * Math.sign(data.value) < 0){
                 data.value = Math.sign(data.value) * 0.2;
                 data.force = true;
                 controller.client.blockSended = true;
