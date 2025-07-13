@@ -43,6 +43,7 @@ export function registerClientToController(ws, client) {
         "espType": esp.type,
         "limit" : esp.limit,
         "motors" : esp.motors,
+        "blocked" : esp.blocked ? esp.blocked : true
     }));
     updateControllers();
 }

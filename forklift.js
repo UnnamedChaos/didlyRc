@@ -41,7 +41,12 @@ export function temperData(controller, parsed){
                 }, 5000);
             }
             else {
-                data.value = 0;
+                if(lastSpeed === 0 && controller.client.lastForkDirection){
+                    data.value = 0.3 * data.value;
+                    data.force = true;
+                } else {
+                    data.value = 0;
+                }
             }
         }
     }

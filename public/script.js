@@ -67,23 +67,32 @@ function connectWebSocket() {
                 showElement(forkControls);
                 sliders[4].type = data.motors.lift;
             }
+            if(espType === "FORK"){
+                if(data.blocked){
+                    document.getElementById("forkSliderFill").style.setProperty("background", "red");
+                }
+            }
             updateClients();
         } else if (data.type === "UPDATE_CLIENTS") {
             updateClients();
         } else if (data.type === "BLOCKED") {
             updateClients();
-            if(data.value === true){
-                document.getElementById("forkSliderFill").style.setProperty("background", "red");
-                console.log(Math.sign(data.dir));
-                if(Math.sign(data.dir) < 0){
-                    showElement(document.getElementById("liftUpArrow"));
+            if(espType === "FORK"){
+                if(data.value === true){
+                    document.getElementById("forkSliderFill").style.setProperty("background", "red");
+                    console.log(Math.sign(data.dir));
+                    if(Math.sign(data.dir) < 0){
+                        showElement(document.getElementById("liftUpArrow"));
+                    } else if (Math.sign(data.dir) > 0) {
+                        showElement(document.getElementById("liftDownArrow"));
+                    } else {
+
+                    }
                 } else {
-                    showElement(document.getElementById("liftDownArrow"));
+                    document.getElementById("forkSliderFill").style.setProperty("background", "#333");
+                    hideElement(document.getElementById("liftUpArrow"));
+                    hideElement(document.getElementById("liftDownArrow"));
                 }
-            } else {
-                document.getElementById("forkSliderFill").style.setProperty("background", "#333");
-                hideElement(document.getElementById("liftUpArrow"));
-                hideElement(document.getElementById("liftDownArrow"));
             }
         } else if (data.type === "S1") {
             setSliderValue("S1", data.value);
@@ -161,7 +170,6 @@ function updateClients() {
 
                 }
                 clientSelector.appendChild(card);
-
             })
         });
 }
