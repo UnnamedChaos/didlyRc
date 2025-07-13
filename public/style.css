@@ -155,6 +155,10 @@ h1 {
     background: darkseagreen;
 }
 
+.darkgreen {
+    background: green;
+}
+
 .red {
     background: #cd4646;
 }

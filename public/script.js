@@ -52,7 +52,7 @@ function connectWebSocket() {
             clientId = data.value;
             espType = data.espType
             disconnectBtn.style.setProperty("display", "flex");
-            document.body.classList.remove("black", "blue", "orange", "red", "green", "yellow");
+            document.body.classList.remove("black", "blue", "orange", "red", "green", "yellow","darkgreen");
             document.body.classList.add(data.background);
             document.getElementById("controls").style.setProperty("display", "flex");
             clientSelector.style.setProperty("display", "none");

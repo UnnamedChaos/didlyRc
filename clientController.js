@@ -135,15 +135,26 @@ function isAnyStopTriggered(msg) {
 
 export function checkStatus(ws, msg) {
     let esp = findEspByWs(ws);
-    if(esp && esp.esp.type === "SKID" && isAnyStopTriggered(msg)){
-        console.log("Skid has blockage. ");
-        if(msg.stops.upper){
-            console.log("Found blockage of upper motor.");
+    if(esp && esp.esp.type === "SKID"){
+        if (isAnyStopTriggered(msg)){
+            console.log("Skid has blockage. ");
+            esp.blocked = true;
+            esp.lastSpeedM1 = msg.lastSpeedM1;
+            esp.lastSpeedM2 = msg.lastSpeedM2;
+            esp.lastSpeedM3 = msg.lastSpeedM3;
+            if(msg.stops.upper){
+                console.log("Found blockage of upper motor.");
+                esp.upperBlocked = true;
+            }
+            if(msg.stops.lower){
+                console.log("Found blockage of lower motor.");
+                esp.lowerBlocked = true;
+            }
+        } else {
+            console.log("Report received. Skid has no blockage.");
+            esp.blocked = false;
         }
-        if(msg.stops.lower){
-            console.log("Found blockage of lower motor.");
 
-        }
     } else if(esp && esp.esp.type === "FORK"){
             const controller = getControllerByEsp(esp);
         if(isAnyStopTriggered(msg)){

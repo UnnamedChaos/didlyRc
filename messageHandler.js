@@ -51,7 +51,7 @@ export function proxyMessage(req, parsed) {
         if(controller && controller.client){
             let data = temperProxyData(controller, parsed, req);
             if(canSendMessage(controller, parsed, data) && (!controller.client.blocked || data.force)){
-                console.log("Sending: " + JSON.stringify(data));
+                //console.log("Sending: " + JSON.stringify(data));
                 controller.client.ws.send(JSON.stringify(data));
                 controller.lastMsg = data;
                 controller.canSendMsg = false;
