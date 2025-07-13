@@ -30,15 +30,42 @@ bool frontLightOn = false;
 bool blinkerLightOn = false;
 bool enableBlinkerLight = false;
 int lastBlink = BLINKER_TIME;
-
+bool scheduleReport = false;
 unsigned long previousMillis = millis();
+bool blockedMotors = false;
+float lastSpeedM1 = 0.0;
+float lastSpeedM2 = 0.0;
+float lastSpeedM3 = 0.0;
+
+portMUX_TYPE stopMux = portMUX_INITIALIZER_UNLOCKED;
 
 
 
-void IRAM_ATTR handleLow() {
-    controlMotor(0, ENGINE_A_1A, ENGINE_A_1B, true);
-    controlMotor(0, ENGINE_B_1A, ENGINE_B_1B, true);
-    controlMotor(0, ENGINE_C_1A, ENGINE_C_1B, true);
+void prepareAndSendReports(){
+    sendReport();
+    scheduleReport = false;
+}
+
+void IRAM_ATTR handleStopChange() {
+  portENTER_CRITICAL_ISR(&stopMux);
+  processBlock(digitalRead(STOP));
+  portEXIT_CRITICAL_ISR(&stopMux);
+}
+
+void IRAM_ATTR handleStopChangeL() {
+  portENTER_CRITICAL_ISR(&stopMux);
+  processBlock(digitalRead(STOP_L));
+  portEXIT_CRITICAL_ISR(&stopMux);
+}
+
+void processBlock(bool state){
+  if (state == LOW) {
+    stopAllMotors();
+    blockedMotors = true;
+  } else {
+    blockedMotors = false;
+  }
+  scheduleReport = true;
 }
 
 void setupControls(){
@@ -63,14 +90,24 @@ void setupControls(){
     s2.setPeriodHertz(50);
     s2.attach(S2_PIN, 500, 2500);
     
-    attachInterrupt(digitalPinToInterrupt(STOP), handleLow, FALLING);
-    attachInterrupt(digitalPinToInterrupt(STOP_L), handleLow, FALLING);
+    attachInterrupt(digitalPinToInterrupt(STOP), handleStopChange, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(STOP_L), handleStopChangeL, CHANGE);
+
+    blockedMotors = digitalRead(STOP) == LOW || digitalRead(STOP_L) == LOW;
 }
 
 unsigned long lastDriveUpdate = MIN_UPDATE_TIME;
 
-void controlMotor(int speed, int pin1, int pin2, bool force) {
-  if(force || (digitalRead(STOP) == HIGH && digitalRead(STOP_L) == HIGH)){
+bool controlMotor(int speed, int pin1, int pin2, bool force) {
+  bool updated = false;
+  bool allowDrive;
+
+  // Critical only for reading shared variable
+  portENTER_CRITICAL_ISR(&stopMux);
+  allowDrive = force || !blockedMotors;
+  portEXIT_CRITICAL_ISR(&stopMux);
+
+  if (allowDrive) {
     if (speed > 0) {
       analogWrite(pin1, abs(speed));
       analogWrite(pin2, 0);
@@ -82,7 +119,10 @@ void controlMotor(int speed, int pin1, int pin2, bool force) {
       analogWrite(pin2, 0);
     }
     lastDriveUpdate = MIN_UPDATE_TIME;
+    updated = true;
   }
+
+  return updated;
 }
 
 void controlServo(int id, int turnValue) {
@@ -121,29 +161,18 @@ void honk(){
   }
 }
 
-bool reportSent = false;
-unsigned long lastReportSend = 4*MIN_UPDATE_TIME;
 void updateStops(unsigned long millis){
   lastDriveUpdate = lastDriveUpdate - millis;
 
   if(lastDriveUpdate <= 0){
-    controlMotor(0, ENGINE_A_1A, ENGINE_A_1B, true);
-    controlMotor(0, ENGINE_B_1A, ENGINE_B_1B, true);
-    controlMotor(0, ENGINE_C_1A, ENGINE_C_1B, true);
+    stopAllMotors();
   }
-
-  if((!reportSent || lastReportSend < 0) && (digitalRead(STOP) == LOW || digitalRead(STOP_L) == LOW)){
-    sendReport();
-    reportSent = true;
-    lastReportSend = 4* MIN_UPDATE_TIME;
-    controlMotor(0, ENGINE_A_1A, ENGINE_A_1B, true);
-    controlMotor(0, ENGINE_B_1A, ENGINE_B_1B, true);
-    controlMotor(0, ENGINE_C_1A, ENGINE_C_1B, true);
+  portENTER_CRITICAL(&stopMux);
+  if(scheduleReport){
+    prepareAndSendReports();
+    stopAllMotors();
   }
-  else{
-    reportSent = false;
-    lastReportSend = lastReportSend - millis;
-  }
+  portEXIT_CRITICAL(&stopMux);
 }
 
 void updateLight(unsigned long millis){
@@ -161,4 +190,10 @@ void updateControls(){
   updateLight(currentMillis);
   updateStops(currentMillis);
   previousMillis = millis();
+}
+
+void stopAllMotors(){
+    controlMotor(0, ENGINE_A_1A, ENGINE_A_1B, true);
+    controlMotor(0, ENGINE_B_1A, ENGINE_B_1B, true);
+    controlMotor(0, ENGINE_C_1A, ENGINE_C_1B, true);
 }

@@ -70,9 +70,24 @@ function connectWebSocket() {
             updateClients();
         } else if (data.type === "UPDATE_CLIENTS") {
             updateClients();
-        }  else if (data.type === "S1") {
+        } else if (data.type === "BLOCKED") {
+            updateClients();
+            if(data.value === true){
+                document.getElementById("forkSliderFill").style.setProperty("background", "red");
+                console.log(Math.sign(data.dir));
+                if(Math.sign(data.dir) < 0){
+                    showElement(document.getElementById("liftUpArrow"));
+                } else {
+                    showElement(document.getElementById("liftDownArrow"));
+                }
+            } else {
+                document.getElementById("forkSliderFill").style.setProperty("background", "#333");
+                hideElement(document.getElementById("liftUpArrow"));
+                hideElement(document.getElementById("liftDownArrow"));
+            }
+        } else if (data.type === "S1") {
             setSliderValue("S1", data.value);
-        }  else if (data.type === "DISCONNECT_SUCCESSFUL") {
+        }else if (data.type === "DISCONNECT_SUCCESSFUL") {
             console.log("Disconnect of controller successful");
             clientId = undefined;
             showElement(clientSelector);

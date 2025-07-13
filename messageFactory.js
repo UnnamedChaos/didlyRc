@@ -15,3 +15,7 @@ export function createReportMessage() {
 export function createMessage(type, value) {
     return {type, value}
 }
+
+export function createJSONMessage(type, value) {
+    return JSON.stringify({type, value});
+}

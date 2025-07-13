@@ -27,5 +27,6 @@
     "arm": "M2"
   },
   "type":"SKID",
-  "inverse": true
+  "inverse": true,
+  "inverseArm": true
 }]

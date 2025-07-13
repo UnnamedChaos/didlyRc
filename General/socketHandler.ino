@@ -32,10 +32,18 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 
       if (strcmp(type, "M1") == 0) {
           DEBUG_PRINTLN("Executing drive command.");
-          controlMotor(convertMotorValue(value), ENGINE_A_1A, ENGINE_A_1B, force);
+          bool updated = controlMotor(convertMotorValue(value), ENGINE_A_1A, ENGINE_A_1B, force);
+          if(updated && value != 0){
+            DEBUG_PRINTLN("Updating speed value.");
+            lastSpeedM1 = value;
+          }
       } else if (strcmp(type, "M2") == 0) {
           DEBUG_PRINTLN("Executing drive command.");
-          controlMotor(convertMotorValue(value), ENGINE_B_1A, ENGINE_B_1B, force);
+          bool updated = controlMotor(convertMotorValue(value), ENGINE_B_1A, ENGINE_B_1B, force);
+          if(updated && value != 0){
+            DEBUG_PRINTLN("Updating speed value.");
+            lastSpeedM2 = value;
+          }
       } else if (strcmp(type, "S1") == 0) {
           DEBUG_PRINTLN("Executing turn command with value " + String(value));
           controlServo(1, convertServoValue(value));
@@ -50,7 +58,11 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
           controlServo(2, convertServoValue(value));
       } else if (strcmp(type, "M3") == 0) {
           DEBUG_PRINTLN("Executing drive command.");
-          controlMotor(convertMotorValue(value), ENGINE_C_1A, ENGINE_C_1B, force);
+          bool updated = controlMotor(convertMotorValue(value), ENGINE_C_1A, ENGINE_C_1B, force);
+          if(updated && value != 0){
+            DEBUG_PRINTLN("Updating speed value.");
+            lastSpeedM3 = value;
+          }
       } else if (strcmp(type, "REPORT") == 0) {
           DEBUG_PRINTLN("Executing report command.");
           sendReport();
@@ -68,5 +80,5 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 }
 
 void sendReport() {
-    webSocket.sendTXT("{\"type\":\"REPORT\", \"stops\":{\"upper\":"+String(digitalRead(STOP) == LOW) +", \"lower\":"+String(digitalRead(STOP_L) == LOW) +"}}");
+    webSocket.sendTXT("{\"type\":\"REPORT\", \"stops\":{\"upper\":"+String(digitalRead(STOP) == LOW) +", \"lower\":"+String(digitalRead(STOP_L) == LOW) +"}, \"lastSpeedM1\":"+String(lastSpeedM1) +", \"lastSpeedM2\":"+String(lastSpeedM2) +", \"lastSpeedM3\":"+String(lastSpeedM3) +"}");
 }

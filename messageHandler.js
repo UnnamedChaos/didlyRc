@@ -22,6 +22,7 @@ export const serverMessageTypes = {
     REGISTRATION_SUCCESSFUL: "REGISTRATION_SUCCESSFUL",
     DISCONNECT_SUCCESSFUL: "DISCONNECT_SUCCESSFUL",
     UPDATE_CLIENTS: "UPDATE_CLIENTS",
+    BLOCKED: "BLOCKED",
     REPORT: "REPORT"
 };
 
@@ -39,13 +40,18 @@ function temperProxyData(controller, parsed, req) {
         return temperSkidData(controller, parsed, req);
     }
 }
+
+function canSendMessage(controller, parsed, data){
+    return !controller.lastMsg || Math.abs(controller.lastMsg.value - data.value) > 0.05 || controller.canSendMsg;
+}
+
 export function proxyMessage(req, parsed) {
     if (espMessageTypes[parsed.type]) {
         const controller = controllers.find(value => value.ip === req.socket.remoteAddress);
         if(controller && controller.client){
             let data = temperProxyData(controller, parsed, req);
-            if(!controller.lastMsg || Math.abs(controller.lastMsg.value - data.value) > 0.05 || controller.canSendMsg){
-                //console.log("Sending: " + JSON.stringify(data));
+            if(canSendMessage(controller, parsed, data) && (!controller.client.blocked || data.force)){
+                console.log("Sending: " + JSON.stringify(data));
                 controller.client.ws.send(JSON.stringify(data));
                 controller.lastMsg = data;
                 controller.canSendMsg = false;

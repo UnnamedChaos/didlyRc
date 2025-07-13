@@ -27,7 +27,14 @@
     height: 100%;
     transition: height 0.05s;
 }
-
+.v-slider-fill img {
+    width: 100%;
+}
+.v-slider-fill .down {
+    bottom: 0;
+    position: absolute;
+    left: 0;
+}
 .v-slider-thumb {
     position: absolute;
     left: 0;

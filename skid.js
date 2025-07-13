@@ -13,6 +13,7 @@ export function temperData(controller, parsed, req){
         }
     }
     if (parsed.type === espMessageTypes.M2.toString()) {
+        parsed.value = controller.client.esp.inverseArm ? - parsed.value : parsed.value;
         const s1Value = parsed.sliders.filter(value => value.type === espMessageTypes.S1)[0].value;
         if (s1Value) {
             if (parsed.value > 0) {

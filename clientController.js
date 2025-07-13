@@ -1,5 +1,6 @@
 import espConfig from "./espConfigLokal.json"  with { type: 'json' };
-import {resetEsp, serverMessageTypes, updateControllers} from "./messageHandler.js";
+import {espMessageTypes, resetEsp, serverMessageTypes, updateControllers} from "./messageHandler.js";
+import {createJSONMessage, createMessage, createUpdateClientMessage} from "./messageFactory.js";
 
 
 export let espClients = [];
@@ -23,7 +24,7 @@ export function registerESP(ws, parsed) {
     console.log(`ESP with id ${parsed.value} to be registered.`);
     let esp = findEspInConfig(parsed.value);
     if(esp){
-        espClients.push({ ws, id: parsed.value , name: esp.name, esp});
+        espClients.push({ ws, id: parsed.value , name: esp.name, esp, blocked: false});
         console.log(`Found ESP in config. ESP with id ${parsed.value} registered.`);
         console.log(`Total registered esps: ` + espClients.length);
         updateControllers();
@@ -72,6 +73,10 @@ export function registerController(req, ws, parsed) {
 
 function isEspClientConnected(client){
     return controllers.find(value => value.client && value.client.id === client.id) !== undefined;
+}
+
+function getControllerByEsp(client){
+    return controllers.find(value => value.client && value.client.id === client.id);
 }
 
 
@@ -150,17 +155,36 @@ export function checkStatus(ws, msg) {
             }
             ws.send(JSON.stringify(msg));
         }
-    } else if(esp && esp.esp.type === "FORK" && isAnyStopTriggered(msg)){
-        if(!esp.recentylUnblocked){
-            console.log("Fork has blockage.");
-            let dir = esp.lastForkDirection ? Math.sign(esp.lastForkDirection) : undefined;
-            if(dir){
-            } else {
+    } else if(esp && esp.esp.type === "FORK"){
+            const controller = getControllerByEsp(esp);
+        if(isAnyStopTriggered(msg)){
+            console.log("Fork has blockage in dir " + JSON.stringify(msg));
+            esp.blocked = true;
+            esp.lastSpeedM1 = msg.lastSpeedM1;
+            esp.lastSpeedM2 = msg.lastSpeedM2;
+            esp.lastSpeedM3 = msg.lastSpeedM3;
+            if(controller){
+                const msgF = createMessage(serverMessageTypes.BLOCKED, true);
+                if(msg.lastSpeedM3 && msg.lastSpeedM3 === 0){
+                    msgF.dir = msg.lastSpeedM3;
+                } else {
+                    msgF.dir = esp.lastForkDirection;
+                }
+                controller.ws.send(JSON.stringify(msgF));
             }
-            esp.recentylUnblocked = true;
-            setInterval(() => {
-                esp.recentylUnblocked = false;
-            }, 1000)
+        } else{
+            console.log("Report received. Fork has no blockage.");
+            esp.blocked = false;
+            esp.blockSended = false;
+            if(controller){
+                const msgF =createMessage(serverMessageTypes.BLOCKED, false);
+                if(msg.lastSpeedM3 && msg.lastSpeedM3 === 0){
+                    msgF.dir = msg.lastSpeedM3;
+                } else {
+                    msgF.dir = esp.lastForkDirection;
+                }
+                controller.ws.send(JSON.stringify(msgF));
+            }
         }
     }
 }
@@ -171,7 +195,8 @@ export function getEspClientsJson(){
         name: client.name,
         available: !controllers.find(v => v.client && v.client.id === client.id),
         css: client.esp.background,
-        type: client.esp.type
+        type: client.esp.type,
+        blocked: client.blocked
     }));
 }
 

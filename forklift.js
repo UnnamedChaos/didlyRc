@@ -1,27 +1,46 @@
 import {espMessageTypes} from "./messageHandler.js";
+import {createMessage} from "./messageFactory.js";
 
 export function temperData(controller, parsed){
-    if (parsed.type === espMessageTypes.S1) {
-        parsed.value = parseFloat(parsed.value) + parseFloat(controller.client.esp.trim);
-        if (parsed.value > 1 - controller.client.esp.limit.right) {
-            parsed.value = 1 - controller.client.esp.limit.right;
-        } else if (parsed.value < -1 + controller.client.esp.limit.left) {
-            parsed.value = -1 + controller.client.esp.limit.left;
+    const data = {
+        type: parsed.type,
+        value: parsed.value,
+        force: parsed.force,
+    }
+    if (data.type === espMessageTypes.S1) {
+        data.value = parseFloat(data.value) + parseFloat(controller.client.esp.trim);
+        if (data.value > 1 - controller.client.esp.limit.right) {
+            data.value = 1 - controller.client.esp.limit.right;
+        } else if (data.value < -1 + controller.client.esp.limit.left) {
+            data.value = -1 + controller.client.esp.limit.left;
         }
         if(!controller.client.esp.inverseSteering){
-            parsed.value = -parsed.value;
+            data.value = -data.value;
         }
     }
 
-    if (parsed.type === espMessageTypes[controller.client.esp.motors.lift]) {
-        if (parsed.value !== 0) {
-            controller.client.lastForkDirection = parsed.value;
+    if (data.type === espMessageTypes[controller.client.esp.motors.lift]) {
+        if (data.value !== 0) {
+            controller.client.lastForkDirection = data.value;
+        }
+        if(controller.client.blocked && !controller.client.blockSended){
+            if(Math.abs(data.value) > 0.8 && Math.sign(controller.client.lastSpeedM3) * Math.sign(data.value) < 0){
+                data.value = Math.sign(data.value) * 0.2;
+                data.force = true;
+                controller.client.blockSended = true;
+                setTimeout(function () {
+                    controller.client.blockSended = false;
+                }, 5000);
+            }
+            else {
+                data.value = 0;
+            }
         }
     }
-    if (parsed.type === espMessageTypes[controller.client.esp.motors.drive]) {
+    if (data.type === espMessageTypes[controller.client.esp.motors.drive]) {
         if (controller.client.esp.inverse) {
-            parsed.value = -parsed.value;
+            data.value = -data.value;
         }
     }
-    return parsed;
+    return data;
 }
