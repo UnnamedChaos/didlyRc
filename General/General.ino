@@ -1,18 +1,10 @@
 #include <WiFi.h>
 #include <WebSocketsClient.h>
-#include "controls.h"  // Your motor and servo control logic
+#include "controls.h"
 #include "socketHandler.h"
 #include <ArduinoOTA.h>
+#include "config.h"
 
-// WiFi credentials
-const char* ssids[] = {"RC-Hotspot", "Vodafone-4FDC"};
-const char* passwords[] = {"69696969", "88888888"};
-const int wifiCount = sizeof(ssids) / sizeof(ssids[0]);
-
-// WebSocket server info (IP of Linux server hosting UI + WebSocket)
-const char* ws_hosts[] = {"192.168.4.1", "192.168.0.7"};   // Example IP, replace with your server
-const uint16_t ws_port = 3000;
-const char* ws_path = "/ws";
 int currentNetworkIndex = -1;
 
 WebSocketsClient webSocket;

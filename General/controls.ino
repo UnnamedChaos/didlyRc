@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "controls.h"
 #include <ESP32Servo.h>
+#include "config.h"
 
 #define S1_PIN 13
 #define S2_PIN 25
