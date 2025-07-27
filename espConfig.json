@@ -28,5 +28,6 @@
   },
   "type":"SKID",
   "inverse": true,
-  "inverseArm": true
+  "inverseArm": true,
+  "switchedDirection": true
 }]

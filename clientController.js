@@ -153,6 +153,8 @@ export function checkStatus(ws, msg) {
         } else {
             console.log("Report received. Skid has no blockage.");
             esp.blocked = false;
+            esp.lowerBlocked = false;
+            esp.upperBlocked = false;
         }
 
     } else if(esp && esp.esp.type === "FORK"){
